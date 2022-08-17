@@ -1,25 +1,15 @@
 class Tank {
-  constructor(position, width, height) {
-    this._position = position;
-    this._width = width;
-    this._height = height;
+  constructor({ position, baseSize, levelPosition }) {
+    this._position = {
+      x: position.x + levelPosition.x,
+      y: position.y + levelPosition.y,
+    };
+    this._width = baseSize.width * 4;
+    this._height = baseSize.height * 4;
   }
 
-  setSize(position, width, height) {
-    this._width = width;
-    this._height = height;
-    this.setPosition(position);
-  }
-
-  setPosition(position) {
-    this._position = position;
-  }
-
-  getTank() {
-    return {
-      position: this._position,
-      width: this._width,
-      height: this._height,
-    }
+  render(ctx) {
+		ctx.fillStyle = '#E79C21';
+		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
   }
 }

@@ -2,22 +2,19 @@ class Game {
 	constructor(canvas) {
 		this._canvas = canvas;
 		this._ctx = canvas.getContext('2d');
-		this._canvasWidth = document.documentElement.clientWidth;
-		this._canvasHeight = document.documentElement.clientHeight;
+		this._canvasWidth = 0;
+		this._canvasHeight = 0;
 		this._setSize();
-		this._levels = new Levels();
-		this._model = new GameModel(
-			this._ctx,
-			this._canvasWidth,
-			this._canvasHeight,
-			this._levels,
-		);
-		this._renderer = new GameRenderer(
-			this._ctx,
-			this._model,
-			this._canvasWidth,
-			this._canvasHeight,
-		);
+		this._model = new GameModel({
+			width: this._canvasWidth,
+			height: this._canvasHeight,
+		});
+		this._renderer = new GameRenderer({
+			ctx: this._ctx,
+			model: this._model,
+			width: this._canvasWidth,
+			height: this._canvasHeight,
+		});
 		this._addEventHandlers();
 		this._startGame();
 	}
@@ -64,4 +61,4 @@ class Game {
 	}
 }
 
-new Game(document.getElementById('battle-city'));
+new Game(document.getElementById('canvas'));
