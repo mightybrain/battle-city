@@ -10,12 +10,12 @@ class GameModel {
 		this._setBaseSize();
 
 		this._area = {
+			width: 0,
+			height: 0,
 			position: {
 				x: 0,
 				y: 0,
 			},
-			width: 0,
-			height: 0
 		}
 		this._setAreaSize();
 
@@ -33,10 +33,16 @@ class GameModel {
 			baseSize: this._baseSize,
 			levelPosition: this._area.position,
 		});
+
+		this._prevTimestamp = 0;
 	}
 
 	update(timestamp) {
-
+		if (this._prevTimestamp) {
+			const delta = (timestamp - this._prevTimestamp) / 1000;
+			this._player.update({ delta, level: this._level });
+		}
+		this._prevTimestamp = timestamp;
 	}
 
 	setSize(width, height) {
@@ -79,71 +85,15 @@ class GameModel {
 		})
 	}
 
-	/*_updatePlayer() {
-		const { _area, _movingUp, _movingDown, _movingRight, _movingLeft, _player } = this;
-		const { position: playerPosition, width: playerWidth, height: playerHeight } = _player.getTank();
-
-		if (_movingUp && _area.position.y < playerPosition.y) {
-			_player.setPosition({
-				x: playerPosition.x,
-				y: playerPosition.y - 1,
-			})
-		} else if (_movingDown && _area.position.y + _area.height > playerPosition.y + playerHeight) {
-			_player.setPosition({
-				x: playerPosition.x,
-				y: playerPosition.y + 1,
-			})
-		} else if (_movingRight && _area.position.x + _area.width > playerPosition.x + playerWidth) {
-			_player.setPosition({
-				x: playerPosition.x + 1,
-				y: playerPosition.y,
-			})
-		} else if (_movingLeft && _area.position.x < playerPosition.x) {
-			_player.setPosition({
-				x: playerPosition.x - 1,
-				y: playerPosition.y,
-			})			
-		}
-	}
-
 	handleKeyDown(event) {
-		this._movingUp = false;
-		this._movingDown = false;
-		this._movingRight = false;
-		this._movingLeft = false;
-
-		switch (event.key) {
-			case 'ArrowUp':
-				this._movingUp = true;
-				break;
-			case 'ArrowDown':
-				this._movingDown = true;
-				break;
-			case 'ArrowRight':
-				this._movingRight = true;
-				break;
-			case 'ArrowLeft':
-				this._movingLeft = true;
-				break;
-		}
+		const playerEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
+		if (playerEvents.includes(event.key)) this._player.handleKeyDown(event.key);
 	}
 
 	handleKeyUp(event) {
-		switch (event.key) {
-			case 'ArrowUp':
-				this._movingUp = false;
-				break;
-			case 'ArrowDown':
-				this._movingDown = false;
-				break;
-			case 'ArrowRight':
-				this._movingRight = false;
-				break;
-			case 'ArrowLeft':
-				this._movingLeft = false;
-				break;
-		}
-	}*/
+		const playerEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
+		if (playerEvents.includes(event.key)) this._player.handleKeyUp(event.key);
+	}
 
 	getPlayer() {
 		return this._player;

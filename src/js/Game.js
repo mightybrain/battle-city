@@ -46,7 +46,8 @@ class Game {
 			);
 		})
 		window.addEventListener('keydown', event => {
-			this._model.handleKeyDown(event);
+			if (!event.repeat) this._model.handleKeyDown(event);
+			
 		})
 		window.addEventListener('keyup', event => {
 			this._model.handleKeyUp(event);

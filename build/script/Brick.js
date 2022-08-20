@@ -29,6 +29,17 @@ class Brick {
 		ctx.fillStyle = this._color;
 		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
   }
+
+  getSize() {
+    return {
+      width: this._width,
+      height: this._height,
+    }
+  }
+
+  getPosition() {
+    return this._position;
+  }
 }
 
 Brick.types = {
