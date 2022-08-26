@@ -1,5 +1,6 @@
 class Tank {
   constructor({ position, baseSize, levelPosition }) {
+    this._size = 4;
     this._position = {
       x: position.x + levelPosition.x,
       y: position.y + levelPosition.y,
@@ -12,13 +13,30 @@ class Tank {
       width: baseSize.width,
       height: baseSize.height,
     };
-    this._width = baseSize.width * 4;
-    this._height = baseSize.height * 4;
+    this._width = baseSize.width * this._size;
+    this._height = baseSize.height * this._size;
     this._speedPerSecond = 100;
     this._velocity = {
       x: 0,
       y: 0,
     };
+  }
+
+  setSize({ levelPosition, baseSize }) {
+    const coords = {
+      x: (this._position.x - this._levelPosition.x) / this._baseSize.width,
+      y: (this._position.y - this._levelPosition.y) / this._baseSize.height,
+    }
+    this._levelPosition.x = levelPosition.x;
+    this._levelPosition.y = levelPosition.y;
+    this._baseSize.width = baseSize.width;
+    this._baseSize.height = baseSize.height;
+    this._position = {
+      x: coords.x * this._baseSize.width + this._levelPosition.x,
+      y: coords.y * this._baseSize.height + this._levelPosition.y,
+    }
+    this._width = baseSize.width * this._size;
+    this._height = baseSize.height * this._size;
   }
 
   render(ctx) {
@@ -68,9 +86,28 @@ class Tank {
   }
 
   _updatePositionWithLevelBricksCollision(position, direction, level) {
-    const bricks = level.getBricks();
+    const levelMap = level.getMap();
     
+    const coords = {
+      x: (this._position.x - this._levelPosition.x) / this._baseSize.width,
+      y: (this._position.y - this._levelPosition.y) / this._baseSize.height,
+    }
+
+    const corners = {
+      x1: Math.floor(coords.x),
+      y1: Math.floor(coords.y),
+      x2: Math.ceil(coords.x + this._size),
+      y2: Math.ceil(coords.y + this._size),
+    }
+
+    const bricks = levelMap
+      .slice(corners.y1, corners.y2)
+      .map(row => row.slice(corners.x1, corners.x2))
+      .flat()
+
     for (let i = 0; i < bricks.length; i++) {
+      if (!bricks[i]) continue;
+
       const brickPosition = bricks[i].getPosition();
       const { width: brickWidth, height: brickHeight } = bricks[i].getSize();
 
@@ -90,11 +127,16 @@ class Tank {
     return position;
   }
 
-	handleKeyDown(key) {
+	handleKeyDown(code) {
     const moveEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
+    const shootEvent = 'Space';
+
+    if (code === shootEvent) {
+      console.log('shoot');
+    }
     
-    if (moveEvents.includes(key)) {
-      switch (key) {
+    if (moveEvents.includes(code)) {
+      switch (code) {
         case 'ArrowUp':
           this._velocity = {
             x: 0,
@@ -123,14 +165,14 @@ class Tank {
     }
 	}
 
-	handleKeyUp(key) {
+	handleKeyUp(code) {
     const moveEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
-    if (moveEvents.includes(key)) {
+    if (moveEvents.includes(code)) {
       const mustStop = 
-        (key === 'ArrowUp' && this._velocity.y < 0) ||
-        (key === 'ArrowDown' && this._velocity.y > 0) ||
-        (key === 'ArrowRight' && this._velocity.x > 0) ||
-        (key === 'ArrowLeft' && this._velocity.x < 0);
+        (code === 'ArrowUp' && this._velocity.y < 0) ||
+        (code === 'ArrowDown' && this._velocity.y > 0) ||
+        (code === 'ArrowRight' && this._velocity.x > 0) ||
+        (code === 'ArrowLeft' && this._velocity.x < 0);
       if (mustStop) this._velocity = { x: 0, y: 0 }
     };
 	}

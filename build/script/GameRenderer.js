@@ -36,9 +36,13 @@ class GameRenderer {
 
 	_drawLevel() {
 		const level = this._model.getLevel();
-		const bricks = level.getBricks();
+		const map = level.getMap();
 
-		bricks.forEach(brick => brick.render(this._ctx));
+		map.forEach(row => {
+			row.forEach(brick => {
+				if (brick) brick.render(this._ctx)
+			})
+		})
 	}
 
 	_drawPlayer() {

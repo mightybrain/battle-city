@@ -28,7 +28,10 @@ class GameModel {
 			baseSize: this._baseSize,
 		});
 
+		this._bullets = [];
+
 		this._player = new Tank({
+			bullets: this._bullets,
 			position: { x: 0, y: 0 },
 			baseSize: this._baseSize,
 			levelPosition: this._area.position,
@@ -51,6 +54,7 @@ class GameModel {
 		this._setBaseSize();
 		this._setAreaSize();
 		this._setLevelSize();
+		this._setPlayerSize();
 	}
 
 	_setBaseSize() {
@@ -85,14 +89,21 @@ class GameModel {
 		})
 	}
 
+	_setPlayerSize() {
+		this._player.setSize({
+			levelPosition: this._area.position,
+			baseSize: this._baseSize,
+		})
+	}
+
 	handleKeyDown(event) {
-		const playerEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
-		if (playerEvents.includes(event.key)) this._player.handleKeyDown(event.key);
+		const playerEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft', 'Space'];
+		if (playerEvents.includes(event.code)) this._player.handleKeyDown(event.code);
 	}
 
 	handleKeyUp(event) {
 		const playerEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
-		if (playerEvents.includes(event.key)) this._player.handleKeyUp(event.key);
+		if (playerEvents.includes(event.code)) this._player.handleKeyUp(event.code);
 	}
 
 	getPlayer() {
