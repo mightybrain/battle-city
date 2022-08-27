@@ -9,9 +9,9 @@ class GameRenderer {
 	render() {
 		this._clear();
 		this._drawBackground();
-		this._drawArea();
 		this._drawLevel();
 		this._drawPlayer();
+		this._drawBullets();
 	}
 
 	setSize(width, height) {
@@ -28,19 +28,20 @@ class GameRenderer {
 		this._ctx.fillRect(0, 0, this._width, this._height);
 	}
 
-	_drawArea() {
-		const { position, width, height } = this._model.getArea();
-		this._ctx.fillStyle = '#000000';
-		this._ctx.fillRect(position.x, position.y, width, height);
-	}
-
 	_drawLevel() {
 		const level = this._model.getLevel();
+
+		const { width: levelMapWidth, height: levelMapHeight } = level.getMapSize();
+		const levelMapPosition = level.getMapPosition();
+
+		this._ctx.fillStyle = '#000000';
+		this._ctx.fillRect(levelMapPosition.x, levelMapPosition.y, levelMapWidth, levelMapHeight);
+
 		const map = level.getMap();
 
 		map.forEach(row => {
 			row.forEach(brick => {
-				if (brick) brick.render(this._ctx)
+				if (brick) brick.render(this._ctx);
 			})
 		})
 	}
@@ -48,5 +49,12 @@ class GameRenderer {
 	_drawPlayer() {
 		const player = this._model.getPlayer();
 		player.render(this._ctx);
+	}
+
+	_drawBullets() {
+		const bulletsStore = this._model.getBulletsStore();
+		const bullets = bulletsStore.getBullets();
+		
+		bullets.forEach(bullet => bullet.render(this._ctx));
 	}
 }

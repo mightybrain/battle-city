@@ -1,14 +1,14 @@
 class Brick {
-  constructor({ coords, baseSize, levelPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer }) {
-    this._width = baseSize.width;
-    this._height = baseSize.height;
+  constructor({ coords, baseWidth, baseHeight, levelMapPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer }) {
+    this._width = baseWidth;
+    this._height = baseHeight;
     this._coords = {
       x: coords.x,
       y: coords.y,
     };
     this._position = {
-      x: this._coords.x * this._width + levelPosition.x,
-      y: this._coords.y * this._height + levelPosition.y,
+      x: this._coords.x * this._width + levelMapPosition.x,
+      y: this._coords.y * this._height + levelMapPosition.y,
     };
     this._collideWithBullet = collideWithBullet;
     this._collideWithTank = collideWithTank;
@@ -18,11 +18,11 @@ class Brick {
     this._layer = layer;
   }
 
-  setSize({ baseSize, levelPosition }) {
-    this._width = baseSize.width;
-    this._height = baseSize.height;
-    this._position.x = this._coords.x * baseSize.width + levelPosition.x;
-    this._position.y = this._coords.y * baseSize.height + levelPosition.y;
+  setSize({ baseWidth, baseHeight, levelMapPosition }) {
+    this._width = baseWidth;
+    this._height = baseHeight;
+    this._position.x = this._coords.x * this._width + levelMapPosition.x;
+    this._position.y = this._coords.y * this._height + levelMapPosition.y;
   }
 
   render(ctx) {
@@ -39,6 +39,10 @@ class Brick {
 
   getPosition() {
     return this._position;
+  }
+
+  getCoords() {
+    return this._coords;
   }
 }
 

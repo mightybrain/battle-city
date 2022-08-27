@@ -1,27 +1,29 @@
 class Bullet {
-  constructor({ position, baseSize, levelPosition, direction }) {
-    this._id = Math.random().toString();
+  constructor({ position, baseWidth, baseHeight, level, direction, bulletSizeScaleFactor, bulletSpeedPerSecondScaleFactor }) {
+    this._level = level;
+    this._levelMapPositionX = this._level.getMapPosition().x;
+    this._levelMapPositionY = this._level.getMapPosition().y;
 
-    this._size = 2;
+    this._baseWidth = baseWidth;
+    this._baseHeight = baseHeight;
+
+    this._sizeScaleFactor = bulletSizeScaleFactor;
+    this._width = this._baseWidth * this._sizeScaleFactor;
+    this._height = this._baseHeight * this._sizeScaleFactor;
+
     this._position = {
-      x: position.x + levelPosition.x,
-      y: position.y + levelPosition.y,
+      x: position.x,
+      y: position.y,
     };
-    this._levelPosition = {
-      x: levelPosition.x,
-      y: levelPosition.y,
-    };
-    this._baseSize = {
-      width: baseSize.width,
-      height: baseSize.height,
-    };
-    this._width = baseSize.width * this._size;
-    this._height = baseSize.height * this._size;
-    this._speedPerSecond = 300;
+
+    this._speedPerSecondScaleFactor = bulletSpeedPerSecondScaleFactor;
     this._velocity = {
-      x: direction.x * this._speedPerSecond,
-      y: direction.x * this._speedPerSecond,
+      x: direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
+      y: direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
     };
+
+    this._id = Math.random().toString();
+    this._destroyed = false;
   }
 
   render(ctx) {
@@ -29,63 +31,68 @@ class Bullet {
 		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
   }
 
-  update({ delta, level }) {
+  update(delta) {
     let position = {
       x: this._position.x + this._velocity.x * delta,
       y: this._position.y + this._velocity.y * delta,
     }
 
-    const levelEdgesCollision = this._checkLevelEdgesCollision(position, this._velocity, level);
+    const levelEdgesCollision = this._checkLevelEdgesCollision(position);
     if (levelEdgesCollision) {
       this._destroyBullet();
       return;
     }
 
-    const levelBricksCollision = this._checkLevelBricksCollision(position, this._velocity, level);
+    const levelBricksCollision = this._checkLevelBricksCollision(position);
     if (levelBricksCollision) {
       this._destroyBullet();
+
+      const { bricksForDestroying, collisionPosition } = levelBricksCollision;
+      this._level.destroyBricks(bricksForDestroying);
       return;
     }
 
     this._position = position;
   }
 
-  _checkLevelEdgesCollision(position, direction, level) {
-    const levelPosition = level.getPosition();
-    const { width: levelWidth, height: levelHeight } = level.getSize();
+  _checkLevelEdgesCollision(position) {
+    const { width: levelMapWidth, height: levelMapHeight } = this._level.getMapSize();
 
-    if (direction.x > 0 && position.x + this._width > levelPosition.x + levelWidth) {
-      return { ...position, x: levelPosition.x + levelWidth - this._width };
-    } else if (direction.x < 0 && position.x < levelPosition.x) {
-      return { ...position, x: levelPosition.x };
-    } else if (direction.y > 0 && position.y + this._height > levelPosition.y + levelHeight) {
-      return { ...position, y: levelPosition.y + levelHeight - this._height };
-    } else if (direction.y < 0 && position.y < levelPosition.y) {
-      return { ...position, y: levelPosition.y };
+    if (this._velocity.x > 0 && position.x + this._width > this._levelMapPositionX + levelMapWidth) {
+      return { ...position, x: this._levelMapPositionX + levelMapWidth - this._width };
+    } else if (this._velocity.x < 0 && position.x < this._levelMapPositionX) {
+      return { ...position, x: this._levelMapPositionX };
+    } else if (this._velocity.y > 0 && position.y + this._height > this._levelMapPositionY + levelMapHeight) {
+      return { ...position, y: this._levelMapPositionY + levelMapHeight - this._height };
+    } else if (this._velocity.y < 0 && position.y < this._levelMapPositionY) {
+      return { ...position, y: this._levelMapPositionY };
     } else {
       return false;
     }
   }
 
-  _checkLevelBricksCollision(position, direction, level) {
-    const levelMap = level.getMap();
+  _checkLevelBricksCollision(position) {
+    const levelMap = this._level.getMap();
     
     const coords = {
-      x: (this._position.x - this._levelPosition.x) / this._baseSize.width,
-      y: (this._position.y - this._levelPosition.y) / this._baseSize.height,
+      x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
+      y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
     }
 
     const corners = {
       x1: Math.floor(coords.x),
       y1: Math.floor(coords.y),
-      x2: Math.ceil(coords.x + this._size),
-      y2: Math.ceil(coords.y + this._size),
+      x2: Math.ceil(coords.x + this._sizeScaleFactor),
+      y2: Math.ceil(coords.y + this._sizeScaleFactor),
     }
 
     const bricks = levelMap
       .slice(corners.y1, corners.y2)
       .map(row => row.slice(corners.x1, corners.x2))
       .flat()
+
+    const bricksForDestroying = [];
+    let collisionPosition = null;
 
     for (let i = 0; i < bricks.length; i++) {
       if (!bricks[i]) continue;
@@ -100,13 +107,19 @@ class Bullet {
         position.y < brickPosition.y + brickHeight;
       
       if (!hasCollision) continue;
-      else if (direction.x > 0) return { ...position, x: brickPosition.x - this._width };
-      else if (direction.x < 0) return { ...position, x: brickPosition.x + brickWidth };
-      else if (direction.y > 0) return { ...position, y: brickPosition.y - this._height };
-      else if (direction.y < 0) return { ...position, y: brickPosition.y + brickHeight };
+      else {
+        if (!bricksForDestroying.length) {
+          if (this._velocity.x > 0) collisionPosition = { ...position, x: brickPosition.x - this._width };
+          else if (this._velocity.x < 0) collisionPosition = { ...position, x: brickPosition.x + brickWidth };
+          else if (this._velocity.y > 0) collisionPosition = { ...position, y: brickPosition.y - this._height };
+          else if (this._velocity.y < 0) collisionPosition = { ...position, y: brickPosition.y + brickHeight };
+        }
+        bricksForDestroying.push(bricks[i]);
+      }
+
     }
 
-    return false;
+    return !bricksForDestroying.length ? false : { bricksForDestroying, collisionPosition };
   }
 
   getId() {
@@ -114,6 +127,10 @@ class Bullet {
   }
 
   _destroyBullet() {
+    this._destroyed = true;
+  }
 
+  isDestroyed() {
+    return this._destroyed;
   }
 }

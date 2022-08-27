@@ -1,40 +1,27 @@
 class GameModel {
-	constructor({ width, height }) {
+	constructor({ width, height, baseWidth, baseHeight }) {
 		this._width = width;
 		this._height = height;
-
-		this._baseSize = {
-			width: 0,
-			height: 0,
-		};
-		this._setBaseSize();
-
-		this._area = {
-			width: 0,
-			height: 0,
-			position: {
-				x: 0,
-				y: 0,
-			},
-		}
-		this._setAreaSize();
+		this._baseWidth = baseWidth;
+		this._baseHeight = baseHeight;
 
 		this._levelIndex = 1;
 		this._level = new Level({
-			map: Level.maps[this._levelIndex],
-			width: this._area.width,
-			height: this._area.height,
-			position: this._area.position,
-			baseSize: this._baseSize,
+			levelIndex: this._levelIndex,
+			width: this._width,
+			height: this._height,
+			baseWidth: this._baseWidth,
+			baseHeight: this._baseHeight,
 		});
 
-		this._bullets = [];
+		this._bulletsStore = new BulletsStore();
 
-		this._player = new Tank({
-			bullets: this._bullets,
+		this._player = new Player({
 			position: { x: 0, y: 0 },
-			baseSize: this._baseSize,
-			levelPosition: this._area.position,
+			baseWidth: this._baseWidth,
+			baseHeight: this._baseHeight,
+			level: this._level,
+			bulletsStore: this._bulletsStore,
 		});
 
 		this._prevTimestamp = 0;
@@ -43,56 +30,34 @@ class GameModel {
 	update(timestamp) {
 		if (this._prevTimestamp) {
 			const delta = (timestamp - this._prevTimestamp) / 1000;
-			this._player.update({ delta, level: this._level });
+			this._player.update(delta);
+			this._bulletsStore.update(delta);
 		}
 		this._prevTimestamp = timestamp;
 	}
 
-	setSize(width, height) {
+	setSize(width, height, baseWidth, baseHeight) {
 		this._width = width;
 		this._height = height;
-		this._setBaseSize();
-		this._setAreaSize();
+		this._baseWidth = baseWidth;
+		this._baseHeight = baseHeight;
 		this._setLevelSize();
 		this._setPlayerSize();
 	}
 
-	_setBaseSize() {
-		let width = this._width * 0.81;
-		let height = width * 0.65;
-
-		if (height + height * 0.18 > this._height) {
-			height = this._height * 0.85;
-			width = height * 1.53;
-		}	
-
-		this._baseSize.width = Math.round(width / 52);
-		this._baseSize.height = Math.round(height / 52);
-	}
-
-	_setAreaSize() {
-		const areaWidth = this._baseSize.width * 52;
-		const areaHeight = this._baseSize.height * 52;
-
-		this._area.width = areaWidth;
-		this._area.height = areaHeight;
-		this._area.position.x = Math.round((this._width - areaWidth) / 2 - this._baseSize.width * 2);
-		this._area.position.y = Math.round((this._height - areaHeight) / 2);
-	}
-
 	_setLevelSize() {
 		this._level.setSize({
-			width: this._area.width,
-			height: this._area.height,
-			position: this._area.position,
-			baseSize: this._baseSize,
+			width: this._width,
+			height: this._height,
+			baseWidth: this._baseWidth,
+			baseHeight: this._baseHeight,
 		})
 	}
 
 	_setPlayerSize() {
 		this._player.setSize({
-			levelPosition: this._area.position,
-			baseSize: this._baseSize,
+			baseWidth: this._baseWidth,
+			baseHeight: this._baseHeight,
 		})
 	}
 
@@ -114,7 +79,7 @@ class GameModel {
 		return this._level;
 	}
 
-	getArea() {
-		return this._area;
+	getBulletsStore() {
+		return this._bulletsStore;
 	}
 }
