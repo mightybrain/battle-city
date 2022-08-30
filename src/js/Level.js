@@ -54,11 +54,12 @@ class Level {
   }
 
   destroyBricks(bricks) {
-    bricks.forEach(brick => {
-      const { x, y } = brick.getCoords();
-
+    for (let i = 0; i < bricks.length; i++) {
+      if (!bricks[i].getBreakByBullet()) continue;
+      
+      const { x, y } = bricks[i].getCoords();
       this._map[y][x] = 0;
-    })
+    }
   }
 
   getMap() {

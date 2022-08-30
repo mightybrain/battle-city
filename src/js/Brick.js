@@ -44,6 +44,10 @@ class Brick {
   getCoords() {
     return this._coords;
   }
+
+  getBreakByBullet() {
+    return this._breakByBullet;
+  }
 }
 
 Brick.types = {
