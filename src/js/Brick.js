@@ -48,6 +48,18 @@ class Brick {
   getBreakByBullet() {
     return this._breakByBullet;
   }
+
+  getCollideWithTank() {
+    return this._collideWithTank;
+  }
+
+  getCollideWithBullet() {
+    return this._collideWithBullet;
+  }
+
+  getLayer() {
+    return this._layer;
+  }
 }
 
 Brick.types = {
@@ -57,7 +69,7 @@ Brick.types = {
     breakByBullet: true,
     breakBySuperBullet: true,
     color: '#9C4A00',
-    layer: 2,
+    layer: 'bottom',
   },
   2: {
     collideWithBullet: true,
@@ -65,22 +77,22 @@ Brick.types = {
     breakByBullet: false,
     breakBySuperBullet: true,
     color: '#ffffff',
-    layer: 2,
+    layer: 'bottom',
   },
   3: {
     collideWithBullet: false,
     collideWithTank: false,
     breakByBullet: false,
     breakBySuperBullet: false,
-    color: '#85db1a',
-    layer: 3,
+    color: '#70b022',
+    layer: 'top',
   },
   4: {
     collideWithBullet: false,
     collideWithTank: true,
     breakByBullet: false,
     breakBySuperBullet: false,
-    color: '#423fff',
-    layer: 1,
+    color: '#4e4ce3',
+    layer: 'bottom',
   },
 }

@@ -10,8 +10,10 @@ class GameRenderer {
 		this._clear();
 		this._drawBackground();
 		this._drawLevel();
+		this._drawLevelBricks('bottom');
 		this._drawPlayer();
 		this._drawBullets();
+		this._drawLevelBricks('top');
 	}
 
 	setSize(width, height) {
@@ -42,6 +44,17 @@ class GameRenderer {
 		map.forEach(row => {
 			row.forEach(brick => {
 				if (brick) brick.render(this._ctx);
+			})
+		})
+	}
+
+	_drawLevelBricks(layer) {
+		const level = this._model.getLevel();
+		const map = level.getMap();
+
+		map.forEach(row => {
+			row.forEach(brick => {
+				if (brick && brick.getLayer() === layer) brick.render(this._ctx);
 			})
 		})
 	}

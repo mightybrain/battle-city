@@ -155,7 +155,7 @@ class Player {
       .map(row => row.slice(corners.x1, corners.x2))
       .flat()
       .filter(brick => {
-        if (!brick) return false;
+        if (!brick || !brick.getCollideWithTank()) return false;
 
         const brickPosition = brick.getPosition();
         const { width: brickWidth, height: brickHeight } = brick.getSize();

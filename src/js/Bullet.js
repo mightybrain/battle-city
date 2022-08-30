@@ -127,7 +127,7 @@ class Bullet {
       .map(row => row.slice(corners.x1, corners.x2))
       .flat()
       .filter(brick => {
-        if (!brick) return false;
+        if (!brick || !brick.getCollideWithBullet()) return false;
 
         const brickPosition = brick.getPosition();
         const { width: brickWidth, height: brickHeight } = brick.getSize();
