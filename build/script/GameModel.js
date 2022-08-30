@@ -43,6 +43,7 @@ class GameModel {
 		this._baseHeight = baseHeight;
 		this._setLevelSize();
 		this._setPlayerSize();
+		this._setBulletsSize();
 	}
 
 	_setLevelSize() {
@@ -56,6 +57,13 @@ class GameModel {
 
 	_setPlayerSize() {
 		this._player.setSize({
+			baseWidth: this._baseWidth,
+			baseHeight: this._baseHeight,
+		})
+	}
+
+	_setBulletsSize() {
+		this._bulletsStore.setBulletsSize({
 			baseWidth: this._baseWidth,
 			baseHeight: this._baseHeight,
 		})

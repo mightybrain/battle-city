@@ -16,14 +16,41 @@ class Bullet {
       y: position.y,
     };
 
+    this._direction = {
+      x: direction.x,
+      y: direction.y,
+    };
+
     this._speedPerSecondScaleFactor = bulletSpeedPerSecondScaleFactor;
     this._velocity = {
-      x: direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
-      y: direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
+      x: this._direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
+      y: this._direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
     };
 
     this._id = Math.random().toString();
     this._destroyed = false;
+  }
+
+  setSize({ baseWidth, baseHeight }) {
+    const coords = {
+      x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
+      y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
+    }
+
+    this._levelMapPositionX = this._level.getMapPosition().x;
+    this._levelMapPositionY = this._level.getMapPosition().y;
+    this._baseWidth = baseWidth;
+    this._baseHeight = baseHeight;
+    this._position = {
+      x: coords.x * this._baseWidth + this._levelMapPositionX,
+      y: coords.y * this._baseHeight + this._levelMapPositionY,
+    }
+    this._width = this._baseWidth * this._sizeScaleFactor;
+    this._height = this._baseHeight * this._sizeScaleFactor;
+    this._velocity = {
+      x: this._direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
+      y: this._direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
+    };
   }
 
   render(ctx) {
