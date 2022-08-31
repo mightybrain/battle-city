@@ -23,17 +23,11 @@ class GameModel {
 			level: this._level,
 			bulletsStore: this._bulletsStore,
 		});
-
-		this._prevTimestamp = 0;
 	}
 
-	update(timestamp) {
-		if (this._prevTimestamp) {
-			const delta = (timestamp - this._prevTimestamp) / 1000;
-			this._player.update(delta);
-			this._bulletsStore.update(delta);
-		}
-		this._prevTimestamp = timestamp;
+	update(delta) {
+		this._player.update(delta);
+		this._bulletsStore.update(delta);
 	}
 
 	setSize(width, height, baseWidth, baseHeight) {

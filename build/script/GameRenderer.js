@@ -38,14 +38,6 @@ class GameRenderer {
 
 		this._ctx.fillStyle = '#000000';
 		this._ctx.fillRect(levelMapPosition.x, levelMapPosition.y, levelMapWidth, levelMapHeight);
-
-		const map = level.getMap();
-
-		map.forEach(row => {
-			row.forEach(brick => {
-				if (brick) brick.render(this._ctx);
-			})
-		})
 	}
 
 	_drawLevelBricks(layer) {
@@ -67,7 +59,6 @@ class GameRenderer {
 	_drawBullets() {
 		const bulletsStore = this._model.getBulletsStore();
 		const bullets = bulletsStore.getBullets();
-		
 		bullets.forEach(bullet => bullet.render(this._ctx));
 	}
 }

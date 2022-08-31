@@ -16,6 +16,7 @@ class Player {
       x: position.x + this._levelMapPositionX,
       y: position.y + this._levelMapPositionY,
     };
+
     this._speedPerSecondScaleFactor = 6;
     this._velocity = {
       x: 0,
@@ -58,13 +59,15 @@ class Player {
   }
 
   update(delta) {
-    if (this._velocity.x === 0 && this._velocity.y === 0) return;
+    if (!this._velocity.x && !this._velocity.y) return;
 
-    let position = {
-      x: this._position.x + this._velocity.x * delta,
-      y: this._roundPositionByAxis(this._position.y, 'y'),
-    }
-    if (this._velocity.y !== 0) {
+    let position;
+    if (this._velocity.x) {
+      position = {
+        x: this._position.x + this._velocity.x * delta,
+        y: this._roundPositionByAxis(this._position.y, 'y'),
+      }
+    } else {
       position = {
         x: this._roundPositionByAxis(this._position.x, 'x'),
         y: this._position.y + this._velocity.y * delta,
@@ -98,61 +101,48 @@ class Player {
   }
 
   _updatePositionWithLevelBricksCollision(position) {
-    const levelMap = this._level.getMap();
-
-    let deep = Math.floor(Math.abs(position.x - this._position.x) / this._baseWidth) + 1;
-    if (this._velocity.y !== 0) {
-      deep = Math.floor(Math.abs(position.y - this._position.y) / this._baseHeight) + 1;
-    }
-
-    let coords = {
-      x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
-      y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
-    }
-    if (this._velocity.y > 0) {
-      coords = {
-        x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
-        y: (this._position.y + this._height - this._levelMapPositionY) / this._baseHeight,
+    let area;
+    if (this._velocity.x > 0) {
+      area = {
+        x1: this._position.x + this._width,
+        y1: this._position.y,
+        x2: position.x + this._width,
+        y2: position.y + this._height,
       }
-    } else if (this._velocity.x > 0) {
-      coords = {
-        x: (this._position.x + this._width - this._levelMapPositionX) / this._baseWidth,
-        y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
-      }
-    }
-
-    let corners = {
-      x1: Math.floor(coords.x),
-      y1: Math.floor(coords.y),
-      x2: Math.ceil(coords.x + deep),
-      y2: Math.ceil(coords.y + this._sizeScaleFactor),
-    }
-    if (this._velocity.x < 0) {
-      corners = {
-        x1: Math.floor(coords.x - deep),
-        y1: Math.floor(coords.y),
-        x2: Math.ceil(coords.x),
-        y2: Math.ceil(coords.y + this._sizeScaleFactor),
+    } else if (this._velocity.x < 0) {
+      area = {
+        x1: position.x,
+        y1: position.y,
+        x2: this._position.x,
+        y2: this._position.y + this._height,
       }
     } else if (this._velocity.y > 0) {
-      corners = {
-        x1: Math.floor(coords.x),
-        y1: Math.floor(coords.y),
-        x2: Math.ceil(coords.x + this._sizeScaleFactor),
-        y2: Math.ceil(coords.y + deep),
+      area = {
+        x1: this._position.x,
+        y1: this._position.y + this._height,
+        x2: position.x + this._width,
+        y2: position.y + this._height,
       }
     } else if (this._velocity.y < 0) {
-      corners = {
-        x1: Math.floor(coords.x),
-        y1: Math.floor(coords.y - deep),
-        x2: Math.ceil(coords.x + this._sizeScaleFactor),
-        y2: Math.ceil(coords.y),
+      area = {
+        x1: position.x,
+        y1: position.y,
+        x2: this._position.x + this._width,
+        y2: this._position.y,
       }
     }
 
-    let bricks = levelMap
-      .slice(corners.y1, corners.y2)
-      .map(row => row.slice(corners.x1, corners.x2))
+    const coords = {
+      x1: Math.floor((area.x1 - this._levelMapPositionX) / this._baseWidth),
+      y1: Math.floor((area.y1 - this._levelMapPositionY) / this._baseHeight),
+      x2: Math.ceil((area.x2 - this._levelMapPositionX) / this._baseWidth),
+      y2: Math.ceil((area.y2 - this._levelMapPositionY) / this._baseHeight),
+    }
+
+    let bricksWithCollision = this._level
+      .getMap()
+      .slice(coords.y1, coords.y2)
+      .map(row => row.slice(coords.x1, coords.x2))
       .flat()
       .filter(brick => {
         if (!brick || !brick.getCollideWithTank()) return false;
@@ -160,24 +150,13 @@ class Player {
         const brickPosition = brick.getPosition();
         const { width: brickWidth, height: brickHeight } = brick.getSize();
 
-        let hasCollision = 
-          position.x + this._width > brickPosition.x &&
-          this._position.x < brickPosition.x + brickWidth &&
-          position.y + this._height > brickPosition.y &&
-          this._position.y < brickPosition.y + brickHeight;
-
-        if (this._velocity.x < 0 || this._velocity.y < 0) {
-          hasCollision = 
-            this._position.x + this._width > brickPosition.x &&
-            position.x < brickPosition.x + brickWidth &&
-            this._position.y + this._height > brickPosition.y &&
-            position.y < brickPosition.y + brickHeight;
-        }
-
-        return hasCollision;
+        return brickPosition.x + brickWidth > area.x1 &&
+          brickPosition.x < area.x2 &&
+          brickPosition.y + brickHeight > area.y1 &&
+          brickPosition.y < area.y2;
       })
 
-    const closestBrickWithCollision = bricks.length ? this._findClosestBrickWithCollision(bricks) : null;
+    const closestBrickWithCollision = this._findClosestBrickWithCollision(bricksWithCollision);
 
     if (!closestBrickWithCollision) return position;
     else if (this._velocity.x > 0) return { ...position, x: closestBrickWithCollision.getPosition().x - this._width };
@@ -187,75 +166,63 @@ class Player {
   }
 
   _findClosestBrickWithCollision(bricks) {
-    if (this._velocity.x > 0) return bricks.sort((a, b) => a.getCoords().x - b.getCoords().x)[0];
-    else if (this._velocity.x < 0) return bricks.sort((a, b) => b.getCoords().x - a.getCoords().x)[0];
-    else if (this._velocity.y > 0) return bricks.sort((a, b) => a.getCoords().y - b.getCoords().y)[0];
-    else if (this._velocity.y < 0) return bricks.sort((a, b) => b.getCoords().y - a.getCoords().y)[0];
+    if (!bricks.length) return null;
+    else if (this._velocity.x) bricks.sort((a, b) => a.getCoords().x - b.getCoords().x);
+    else bricks.sort((a, b) => a.getCoords().y - b.getCoords().y);
+
+    if (this._velocity.x > 0 || this._velocity.y > 0) return bricks[0];
+    else return bricks[bricks.length - 1];
+  }
+
+  _shoot() {
+    if (this._reload) return;
+    this._reload = true;
+
+    const bulletWidth = this._baseWidth * this._bulletSizeScaleFactor;
+    const bulletHeight = this._baseHeight * this._bulletSizeScaleFactor;
+    let bulletPosition;
+
+    if (this._direction.x) {
+      bulletPosition = { 
+        x: this._direction.x > 0 ? this._position.x + this._width - bulletWidth : this._position.x, 
+        y: this._position.y + this._height / 2 - bulletHeight / 2,
+      };
+    } else {
+      bulletPosition = { 
+        x: this._position.x + this._width / 2 - bulletWidth / 2,
+        y: this._direction.y > 0 ? this._position.y + this._height - bulletHeight : this._position.y,
+      };
+    }
+
+    this._bulletsStore.addBullet(new Bullet({
+      position: bulletPosition,
+      baseWidth: this._baseWidth,
+      baseHeight: this._baseHeight,
+      level: this._level,
+      direction: {
+        x: this._direction.x,
+        y: this._direction.y,
+      },
+      bulletSizeScaleFactor: this._bulletSizeScaleFactor,
+      bulletSpeedPerSecondScaleFactor: this._bulletSpeedPerSecondScaleFactor,
+    }))
+
+    setTimeout(() => {
+      this._reload = false;
+    }, this._reloadDelay)
   }
 
 	handleKeyDown(code) {
     const moveEvents = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
     const shootEvent = 'Space';
 
-    if (code === shootEvent && !this._reload) {
-      this._reload = true;
-
-      let bulletPosition = {
-        x: 0,
-        y: 0,
-      }
-
-      if (this._direction.x > 0) {
-        bulletPosition = { 
-          x: this._position.x + this._width - this._baseWidth * this._bulletSizeScaleFactor, 
-          y: this._position.y + this._height / 2 - this._baseHeight * this._bulletSizeScaleFactor / 2,
-        };
-      } else if (this._direction.x < 0) {
-        bulletPosition = { 
-          x: this._position.x,
-          y: this._position.y + this._height / 2 - this._baseHeight * this._bulletSizeScaleFactor / 2,
-        };
-      } else if (this._direction.y > 0) {
-        bulletPosition = { 
-          x: this._position.x + this._width / 2 - this._baseWidth * this._bulletSizeScaleFactor / 2,
-          y: this._position.y + this._height - this._baseHeight * this._bulletSizeScaleFactor,
-        };
-      } else if (this._direction.y < 0) {
-        bulletPosition = { 
-          x: this._position.x + this._width / 2 - this._baseWidth * this._bulletSizeScaleFactor / 2,
-          y: this._position.y,
-        };
-      }
-
-      this._bulletsStore.addBullet(new Bullet({
-        position: bulletPosition,
-        baseWidth: this._baseWidth,
-        baseHeight: this._baseHeight,
-        level: this._level,
-        direction: {
-          x: this._direction.x,
-          y: this._direction.y,
-        },
-        bulletSizeScaleFactor: this._bulletSizeScaleFactor,
-        bulletSpeedPerSecondScaleFactor: this._bulletSpeedPerSecondScaleFactor,
-      }))
-
-      setTimeout(() => {
-        this._reload = false;
-      }, this._reloadDelay)
-    }
-    
-    if (moveEvents.includes(code)) {
+    if (code === shootEvent) this._shoot();
+    else if (moveEvents.includes(code)) {
       switch (code) {
         case 'ArrowUp':
           this._velocity = {
             x: 0,
             y: -this._speedPerSecondScaleFactor * this._baseHeight,
-          };
-
-          this._direction = {
-            x: 0,
-            y: -1,
           };
           break;
         case 'ArrowDown':
@@ -263,20 +230,10 @@ class Player {
             x: 0,
             y: this._speedPerSecondScaleFactor * this._baseHeight,
           };
-
-          this._direction = {
-            x: 0,
-            y: 1,
-          };
           break;
         case 'ArrowRight':
           this._velocity = {
             x: this._speedPerSecondScaleFactor * this._baseWidth,
-            y: 0,
-          };
-
-          this._direction = {
-            x: 1,
             y: 0,
           };
           break;
@@ -285,12 +242,12 @@ class Player {
             x: -this._speedPerSecondScaleFactor * this._baseWidth,
             y: 0,
           };
-
-          this._direction = {
-            x: -1,
-            y: 0,
-          };
           break;
+      }
+
+      this._direction = {
+        x: this._velocity.x ? this._velocity.x / Math.abs(this._velocity.x) : this._velocity.x,
+        y: this._velocity.y ? this._velocity.y / Math.abs(this._velocity.y) : this._velocity.y,
       }
     }
 	}

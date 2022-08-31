@@ -27,7 +27,6 @@ class Bullet {
       y: this._direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
     };
 
-    this._id = Math.random().toString();
     this._destroyed = false;
   }
 
@@ -66,13 +65,13 @@ class Bullet {
 
     const levelEdgesCollision = this._checkLevelEdgesCollision(position);
     if (levelEdgesCollision) {
-      this._destroyBullet();
+      this._destroy();
       return;
     }
 
     const levelBricksCollision = this._checkLevelBricksCollision(position);
     if (levelBricksCollision) {
-      this._destroyBullet();
+      this._destroy();
       this._level.destroyBricks(levelBricksCollision);
       return;
     }
@@ -97,61 +96,48 @@ class Bullet {
   }
 
   _checkLevelBricksCollision(position) {
-    const levelMap = this._level.getMap();
-
-    let deep = Math.floor(Math.abs(position.x - this._position.x) / this._baseWidth) + 1;
-    if (this._velocity.y !== 0) {
-      deep = Math.floor(Math.abs(position.y - this._position.y) / this._baseHeight) + 1;
-    }
-
-    let coords = {
-      x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
-      y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
-    }
-    if (this._velocity.y > 0) {
-      coords = {
-        x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
-        y: (this._position.y + this._height - this._levelMapPositionY) / this._baseHeight,
+    let area;
+    if (this._velocity.x > 0) {
+      area = {
+        x1: this._position.x + this._width,
+        y1: this._position.y,
+        x2: position.x + this._width,
+        y2: position.y + this._height,
       }
-    } else if (this._velocity.x > 0) {
-      coords = {
-        x: (this._position.x + this._width - this._levelMapPositionX) / this._baseWidth,
-        y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
-      }
-    }
-
-    let corners = {
-      x1: Math.floor(coords.x),
-      y1: Math.floor(coords.y),
-      x2: Math.ceil(coords.x + deep),
-      y2: Math.ceil(coords.y + this._sizeScaleFactor),
-    }
-    if (this._velocity.x < 0) {
-      corners = {
-        x1: Math.floor(coords.x - deep),
-        y1: Math.floor(coords.y),
-        x2: Math.ceil(coords.x),
-        y2: Math.ceil(coords.y + this._sizeScaleFactor),
+    } else if (this._velocity.x < 0) {
+      area = {
+        x1: position.x,
+        y1: position.y,
+        x2: this._position.x,
+        y2: this._position.y + this._height,
       }
     } else if (this._velocity.y > 0) {
-      corners = {
-        x1: Math.floor(coords.x),
-        y1: Math.floor(coords.y),
-        x2: Math.ceil(coords.x + this._sizeScaleFactor),
-        y2: Math.ceil(coords.y + deep),
+      area = {
+        x1: this._position.x,
+        y1: this._position.y + this._height,
+        x2: position.x + this._width,
+        y2: position.y + this._height,
       }
     } else if (this._velocity.y < 0) {
-      corners = {
-        x1: Math.floor(coords.x),
-        y1: Math.floor(coords.y - deep),
-        x2: Math.ceil(coords.x + this._sizeScaleFactor),
-        y2: Math.ceil(coords.y),
+      area = {
+        x1: position.x,
+        y1: position.y,
+        x2: this._position.x + this._width,
+        y2: this._position.y,
       }
     }
 
-    let bricks = levelMap
-      .slice(corners.y1, corners.y2)
-      .map(row => row.slice(corners.x1, corners.x2))
+    const coords = {
+      x1: Math.floor((area.x1 - this._levelMapPositionX) / this._baseWidth),
+      y1: Math.floor((area.y1 - this._levelMapPositionY) / this._baseHeight),
+      x2: Math.ceil((area.x2 - this._levelMapPositionX) / this._baseWidth),
+      y2: Math.ceil((area.y2 - this._levelMapPositionY) / this._baseHeight),
+    }
+
+    let bricksWithCollision = this._level
+      .getMap()
+      .slice(coords.y1, coords.y2)
+      .map(row => row.slice(coords.x1, coords.x2))
       .flat()
       .filter(brick => {
         if (!brick || !brick.getCollideWithBullet()) return false;
@@ -159,47 +145,30 @@ class Bullet {
         const brickPosition = brick.getPosition();
         const { width: brickWidth, height: brickHeight } = brick.getSize();
 
-        let hasCollision = 
-          position.x + this._width > brickPosition.x &&
-          this._position.x < brickPosition.x + brickWidth &&
-          position.y + this._height > brickPosition.y &&
-          this._position.y < brickPosition.y + brickHeight;
-
-        if (this._velocity.x < 0 || this._velocity.y < 0) {
-          hasCollision = 
-            this._position.x + this._width > brickPosition.x &&
-            position.x < brickPosition.x + brickWidth &&
-            this._position.y + this._height > brickPosition.y &&
-            position.y < brickPosition.y + brickHeight;
-        }
-
-        return hasCollision;
+        return brickPosition.x + brickWidth > area.x1 &&
+          brickPosition.x < area.x2 &&
+          brickPosition.y + brickHeight > area.y1 &&
+          brickPosition.y < area.y2;
       })
 
-    return bricks.length ? this._findClosestBricksWithCollision(bricks) : null;
+    return this._findClosestBricksWithCollision(bricksWithCollision);
   }
 
   _findClosestBricksWithCollision(bricks) {
-    if (this._velocity.x > 0) {
-      const closestBrickXCoord = bricks.sort((a, b) => a.getCoords().x - b.getCoords().x)[0].getCoords().x;
+    if (!bricks.length) return null;
+    else if (this._velocity.x) bricks.sort((a, b) => a.getCoords().x - b.getCoords().x)
+    else bricks.sort((a, b) => a.getCoords().y - b.getCoords().y)
+
+    if (this._velocity.x) {
+      const closestBrickXCoord = this._velocity.x > 0 ? bricks[0].getCoords().x : bricks[bricks.length - 1].getCoords().x;
       return bricks.filter(brick => brick.getCoords().x === closestBrickXCoord);
-    } else if (this._velocity.x < 0) {
-      const closestBrickXCoord = bricks.sort((a, b) => b.getCoords().x - a.getCoords().x)[0].getCoords().x;
-      return bricks.filter(brick => brick.getCoords().x === closestBrickXCoord);
-    } else if (this._velocity.y > 0) {
-      const closestBrickYCoord = bricks.sort((a, b) => a.getCoords().y - b.getCoords().y)[0].getCoords().y;
-      return bricks.filter(brick => brick.getCoords().y === closestBrickYCoord);
-    } else if (this._velocity.y < 0) {
-      const closestBrickYCoord = bricks.sort((a, b) => b.getCoords().y - a.getCoords().y)[0].getCoords().y;
+    } else {
+      const closestBrickYCoord = this._velocity.y > 0 ? bricks[0].getCoords().y : bricks[bricks.length - 1].getCoords().y;
       return bricks.filter(brick => brick.getCoords().y === closestBrickYCoord);
     }
   }
 
-  getId() {
-    return this._id;
-  }
-
-  _destroyBullet() {
+  _destroy() {
     this._destroyed = true;
   }
 

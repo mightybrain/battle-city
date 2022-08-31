@@ -5,7 +5,6 @@ class BulletsStore {
 
   update(delta) {
     this._bullets.forEach(bullet => bullet.update(delta));
-
     this._bullets = this._bullets.filter(bullet => !bullet.isDestroyed());
   }
 

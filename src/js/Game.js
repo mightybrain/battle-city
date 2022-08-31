@@ -23,6 +23,8 @@ class Game {
 			height: this._canvasHeight,
 		});
 
+		this._prevTimestamp = 0;
+
 		this._addEventHandlers();
 		this._startGame();
 	}
@@ -34,11 +36,16 @@ class Game {
 	}
 	
 	_gameLoop(timestamp) {
-		this._model.update(timestamp);
-		this._renderer.render();
 		requestAnimationFrame(newTimestamp => {
 			this._gameLoop(newTimestamp);
 		});
+
+		if (this._prevTimestamp) {
+			const delta = (timestamp - this._prevTimestamp) / 1000;
+			this._model.update(delta);
+		}
+		this._prevTimestamp = timestamp;
+		this._renderer.render();
 	}
 
 	_addEventHandlers() {
@@ -57,7 +64,6 @@ class Game {
 		})
 		window.addEventListener('keydown', event => {
 			if (!event.repeat) this._model.handleKeyDown(event);
-			
 		})
 		window.addEventListener('keyup', event => {
 			this._model.handleKeyUp(event);
