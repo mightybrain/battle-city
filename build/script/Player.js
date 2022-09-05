@@ -32,7 +32,10 @@ class Player {
     this._bulletSpeedPerSecondScaleFactor = 18;
 
     this._reload = false;
-    this._reloadDelay = 1000;
+    this._reloadDelay = 700;
+
+    this._personalBullets = [];
+    this._maxPersonalBullets = 1;
   }
 
   setSize({ baseWidth, baseHeight }) {
@@ -59,6 +62,8 @@ class Player {
   }
 
   update(delta) {
+    this._personalBullets = this._personalBullets.filter(bullet => !bullet.isDestroyed());
+
     if (!this._velocity.x && !this._velocity.y) return;
 
     let position;
@@ -87,17 +92,15 @@ class Player {
   _updatePositionWithLevelEdgesCollision(position) {
     const { width: levelMapWidth, height: levelMapHeight } = this._level.getMapSize();
 
-    if (this._velocity.x > 0 && position.x + this._width > this._levelMapPositionX + levelMapWidth) {
+    if (position.x + this._width > this._levelMapPositionX + levelMapWidth) {
       return { ...position, x: this._levelMapPositionX + levelMapWidth - this._width };
-    } else if (this._velocity.x < 0 && position.x < this._levelMapPositionX) {
+    } else if (position.x < this._levelMapPositionX) {
       return { ...position, x: this._levelMapPositionX };
-    } else if (this._velocity.y > 0 && position.y + this._height > this._levelMapPositionY + levelMapHeight) {
+    } else if (position.y + this._height > this._levelMapPositionY + levelMapHeight) {
       return { ...position, y: this._levelMapPositionY + levelMapHeight - this._height };
-    } else if (this._velocity.y < 0 && position.y < this._levelMapPositionY) {
+    } else if (position.y < this._levelMapPositionY) {
       return { ...position, y: this._levelMapPositionY };
-    } else {
-      return position;
-    }
+    } else return position;
   }
 
   _updatePositionWithLevelBricksCollision(position) {
@@ -139,7 +142,7 @@ class Player {
       y2: Math.ceil((area.y2 - this._levelMapPositionY) / this._baseHeight),
     }
 
-    let bricksWithCollision = this._level
+    const bricksWithCollision = this._level
       .getMap()
       .slice(coords.y1, coords.y2)
       .map(row => row.slice(coords.x1, coords.x2))
@@ -155,8 +158,16 @@ class Player {
           brickPosition.y + brickHeight > area.y1 &&
           brickPosition.y < area.y2;
       })
+      .sort((a, b) => {
+        return this._velocity.x ? 
+          a.getCoords().x - b.getCoords().x : 
+          a.getCoords().y - b.getCoords().y;
+      })
 
-    const closestBrickWithCollision = this._findClosestBrickWithCollision(bricksWithCollision);
+    const closestBrickWithCollision = 
+      this._velocity.x > 0 || this._velocity.y > 0 ?
+        bricksWithCollision[0] : 
+        bricksWithCollision[bricksWithCollision.length - 1];
 
     if (!closestBrickWithCollision) return position;
     else if (this._velocity.x > 0) return { ...position, x: closestBrickWithCollision.getPosition().x - this._width };
@@ -165,17 +176,8 @@ class Player {
     else if (this._velocity.y < 0) return { ...position, y: closestBrickWithCollision.getPosition().y + closestBrickWithCollision.getSize().height };
   }
 
-  _findClosestBrickWithCollision(bricks) {
-    if (!bricks.length) return null;
-    else if (this._velocity.x) bricks.sort((a, b) => a.getCoords().x - b.getCoords().x);
-    else bricks.sort((a, b) => a.getCoords().y - b.getCoords().y);
-
-    if (this._velocity.x > 0 || this._velocity.y > 0) return bricks[0];
-    else return bricks[bricks.length - 1];
-  }
-
   _shoot() {
-    if (this._reload) return;
+    if (this._reload || this._personalBullets.length >= this._maxPersonalBullets) return;
     this._reload = true;
 
     const bulletWidth = this._baseWidth * this._bulletSizeScaleFactor;
@@ -194,7 +196,7 @@ class Player {
       };
     }
 
-    this._bulletsStore.addBullet(new Bullet({
+    const bullet = new Bullet({
       position: bulletPosition,
       baseWidth: this._baseWidth,
       baseHeight: this._baseHeight,
@@ -205,7 +207,9 @@ class Player {
       },
       bulletSizeScaleFactor: this._bulletSizeScaleFactor,
       bulletSpeedPerSecondScaleFactor: this._bulletSpeedPerSecondScaleFactor,
-    }))
+    })
+    this._bulletsStore.addBullet(bullet);
+    this._personalBullets.push(bullet);
 
     setTimeout(() => {
       this._reload = false;

@@ -63,39 +63,39 @@ class Bullet {
       y: this._position.y + this._velocity.y * delta,
     }
 
-    const levelEdgesCollision = this._checkLevelEdgesCollision(position);
-    if (levelEdgesCollision) {
+    const positionWithLevelEdgesCollision = this._updatePositionWithLevelEdgesCollision(position);
+    if (positionWithLevelEdgesCollision !== position) {
+      position = positionWithLevelEdgesCollision;
       this._destroy();
       return;
     }
 
-    const levelBricksCollision = this._checkLevelBricksCollision(position);
-    if (levelBricksCollision) {
+    const { position: positionWithLevelBricksCollision, bricksForDestroy } = this._updatePositionWithLevelBricksCollision(position);
+    if (positionWithLevelBricksCollision !== position) {
+      position = positionWithLevelBricksCollision;
       this._destroy();
-      this._level.destroyBricks(levelBricksCollision);
+      this._level.destroyBricks(bricksForDestroy);
       return;
     }
 
     this._position = position;
   }
 
-  _checkLevelEdgesCollision(position) {
+  _updatePositionWithLevelEdgesCollision(position) {
     const { width: levelMapWidth, height: levelMapHeight } = this._level.getMapSize();
 
-    if (this._velocity.x > 0 && position.x + this._width > this._levelMapPositionX + levelMapWidth) {
+    if (position.x + this._width > this._levelMapPositionX + levelMapWidth) {
       return { ...position, x: this._levelMapPositionX + levelMapWidth - this._width };
-    } else if (this._velocity.x < 0 && position.x < this._levelMapPositionX) {
+    } else if (position.x < this._levelMapPositionX) {
       return { ...position, x: this._levelMapPositionX };
-    } else if (this._velocity.y > 0 && position.y + this._height > this._levelMapPositionY + levelMapHeight) {
+    } else if (position.y + this._height > this._levelMapPositionY + levelMapHeight) {
       return { ...position, y: this._levelMapPositionY + levelMapHeight - this._height };
-    } else if (this._velocity.y < 0 && position.y < this._levelMapPositionY) {
+    } else if (position.y < this._levelMapPositionY) {
       return { ...position, y: this._levelMapPositionY };
-    } else {
-      return false;
-    }
+    } else return position;
   }
 
-  _checkLevelBricksCollision(position) {
+  _updatePositionWithLevelBricksCollision(position) {
     let area;
     if (this._velocity.x > 0) {
       area = {
@@ -134,7 +134,7 @@ class Bullet {
       y2: Math.ceil((area.y2 - this._levelMapPositionY) / this._baseHeight),
     }
 
-    let bricksWithCollision = this._level
+    const bricksWithCollision = this._level
       .getMap()
       .slice(coords.y1, coords.y2)
       .map(row => row.slice(coords.x1, coords.x2))
@@ -150,22 +150,72 @@ class Bullet {
           brickPosition.y + brickHeight > area.y1 &&
           brickPosition.y < area.y2;
       })
+      .sort((a, b) => {
+        return this._velocity.x ? 
+          a.getCoords().x - b.getCoords().x : 
+          a.getCoords().y - b.getCoords().y;
+      })
 
-    return this._findClosestBricksWithCollision(bricksWithCollision);
+    const bricksForDestroy = this._findBricksForDestroy(bricksWithCollision);
+
+    if (!bricksForDestroy) return { position };
+    else if (this._velocity.x > 0) {
+      return { 
+        position: { ...position, x: bricksForDestroy[0].getPosition().x - this._width },
+        bricksForDestroy,
+      }
+    } else if (this._velocity.x < 0) {
+      return {
+        position: { ...position, x: bricksForDestroy[0].getPosition().x + bricksForDestroy[0].getSize().width },
+        bricksForDestroy,
+      }
+    } else if (this._velocity.y > 0) {
+      return {
+        position: { ...position, y: bricksForDestroy[0].getPosition().y - this._height },
+        bricksForDestroy,
+      }
+    } else if (this._velocity.y < 0) {
+      return {
+        position: { ...position, y: bricksForDestroy[0].getPosition().y + bricksForDestroy[0].getSize().height },
+        bricksForDestroy,
+      }
+    }
   }
 
-  _findClosestBricksWithCollision(bricks) {
+  _findBricksForDestroy(bricks) {
     if (!bricks.length) return null;
-    else if (this._velocity.x) bricks.sort((a, b) => a.getCoords().x - b.getCoords().x)
-    else bricks.sort((a, b) => a.getCoords().y - b.getCoords().y)
 
-    if (this._velocity.x) {
-      const closestBrickXCoord = this._velocity.x > 0 ? bricks[0].getCoords().x : bricks[bricks.length - 1].getCoords().x;
-      return bricks.filter(brick => brick.getCoords().x === closestBrickXCoord);
-    } else {
-      const closestBrickYCoord = this._velocity.y > 0 ? bricks[0].getCoords().y : bricks[bricks.length - 1].getCoords().y;
-      return bricks.filter(brick => brick.getCoords().y === closestBrickYCoord);
-    }
+    const axis = this._velocity.x ? 'x' : 'y';
+    const closestBrickCoord = this._velocity[axis] > 0 ? bricks[0].getCoords()[axis] : bricks[bricks.length - 1].getCoords()[axis];
+    const bricksForDestroy = bricks.filter(brick => brick.getCoords()[axis] === closestBrickCoord);
+    const additionalBricksForDestroy = this._findAdditionalBricksForDestroy(bricksForDestroy);
+    return [ ...bricksForDestroy, ...additionalBricksForDestroy ];
+  }
+
+  _findAdditionalBricksForDestroy(bricks) {    
+    const levelMap = this._level.getMap();
+
+    return bricks.reduce((total, brick) => {
+      const coords = brick.getCoords();
+
+      if (!brick.getBreakByBullet()) return total;
+
+      let prevBrick;
+      let nextBrick;
+
+      if (this._velocity.x) {
+        prevBrick = levelMap[Math.max(coords.y - 1, 0)][coords.x];
+        nextBrick = levelMap[Math.min(coords.y + 1, levelMap.length)][coords.x];
+      } else {
+        prevBrick = levelMap[coords.y][Math.max(coords.x - 1, 0)];
+        nextBrick = levelMap[coords.y][Math.min(coords.x + 1, levelMap.length)];
+      }
+
+      if (prevBrick && !bricks.includes(prevBrick) && !total.includes(prevBrick)) total.push(prevBrick);
+      if (nextBrick && !bricks.includes(nextBrick) && !total.includes(nextBrick)) total.push(nextBrick);
+
+      return total;
+    }, [])
   }
 
   _destroy() {
