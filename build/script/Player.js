@@ -36,6 +36,15 @@ class Player {
 
     this._personalBullets = [];
     this._maxPersonalBullets = 1;
+
+    this._sprite = new Image();
+    this._sprite.src = 'images/player-01.png';
+
+    this._loaded = false;
+
+    this._sprite.addEventListener('load', () => {
+      this._loaded = true;
+    })
   }
 
   setSize({ baseWidth, baseHeight }) {
@@ -57,8 +66,17 @@ class Player {
   }
 
   render(ctx) {
-		ctx.fillStyle = '#E79C21';
-		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+    if (!this._loaded) return;
+
+		//ctx.fillStyle = '#E79C21';
+		//ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+
+    let spriteOffset = 0;
+    if (this._direction.x > 0) spriteOffset = this._sprite.width * .75;
+    else if (this._direction.x < 0) spriteOffset = this._sprite.width * .5;
+    else if (this._direction.y > 0) spriteOffset = this._sprite.width * .25;
+
+    ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._width, this._height);
   }
 
   update(delta) {

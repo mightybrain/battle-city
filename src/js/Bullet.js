@@ -28,6 +28,15 @@ class Bullet {
     };
 
     this._destroyed = false;
+
+    this._sprite = new Image();
+    this._sprite.src = 'images/bullet.png';
+
+    this._loaded = false;
+
+    this._sprite.addEventListener('load', () => {
+      this._loaded = true;
+    })
   }
 
   setSize({ baseWidth, baseHeight }) {
@@ -53,8 +62,17 @@ class Bullet {
   }
 
   render(ctx) {
-		ctx.fillStyle = '#ffffff';
-		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+    if (!this._loaded) return;
+
+		//ctx.fillStyle = '#ffffff';
+		//ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+
+    let spriteOffset = 0;
+    if (this._velocity.x > 0) spriteOffset = this._sprite.width * .75;
+    else if (this._velocity.x < 0) spriteOffset = this._sprite.width * .5;
+    else if (this._velocity.y > 0) spriteOffset = this._sprite.width * .25;
+
+    ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._width, this._height);
   }
 
   update(delta) {

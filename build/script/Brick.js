@@ -1,5 +1,5 @@
 class Brick {
-  constructor({ coords, baseWidth, baseHeight, levelMapPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer }) {
+  constructor({ coords, baseWidth, baseHeight, levelMapPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, sprite, layer }) {
     this._width = baseWidth;
     this._height = baseHeight;
     this._coords = {
@@ -15,7 +15,15 @@ class Brick {
     this._breakByBullet = breakByBullet;
     this._breakBySuperBullet = breakBySuperBullet;
     this._color = color;
+    this._sprite = new Image();
+    this._sprite.src = sprite;
     this._layer = layer;
+
+    this._loaded = false;
+
+    this._sprite.addEventListener('load', () => {
+      this._loaded = true;
+    })
   }
 
   setSize({ baseWidth, baseHeight, levelMapPosition }) {
@@ -26,8 +34,10 @@ class Brick {
   }
 
   render(ctx) {
-		ctx.fillStyle = this._color;
-		ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+    if (!this._loaded) return;
+		//ctx.fillStyle = this._color;
+		//ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
+    ctx.drawImage(this._sprite, this._position.x, this._position.y, this._width, this._height);
   }
 
   getSize() {
@@ -70,16 +80,54 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#9C4A00',
     layer: 'bottom',
+    sprite: 'images/brick-01.jpg',
   },
   2: {
+    collideWithBullet: true,
+    collideWithTank: true,
+    breakByBullet: true,
+    breakBySuperBullet: true,
+    color: '#9C4A00',
+    layer: 'bottom',
+    sprite: 'images/brick-02.jpg',
+  },
+  3: {
     collideWithBullet: true,
     collideWithTank: true,
     breakByBullet: false,
     breakBySuperBullet: true,
     color: '#ffffff',
     layer: 'bottom',
+    sprite: 'images/concrete-01.jpg',
   },
-  3: {
+  4: {
+    collideWithBullet: true,
+    collideWithTank: true,
+    breakByBullet: false,
+    breakBySuperBullet: true,
+    color: '#ffffff',
+    layer: 'bottom',
+    sprite: 'images/concrete-02.jpg',
+  },
+  5: {
+    collideWithBullet: true,
+    collideWithTank: true,
+    breakByBullet: false,
+    breakBySuperBullet: true,
+    color: '#ffffff',
+    layer: 'bottom',
+    sprite: 'images/concrete-03.jpg',
+  },
+  6: {
+    collideWithBullet: true,
+    collideWithTank: true,
+    breakByBullet: false,
+    breakBySuperBullet: true,
+    color: '#ffffff',
+    layer: 'bottom',
+    sprite: 'images/concrete-04.jpg',
+  },
+  7: {
     collideWithBullet: false,
     collideWithTank: false,
     breakByBullet: false,
@@ -87,7 +135,7 @@ Brick.types = {
     color: '#70b022',
     layer: 'top',
   },
-  4: {
+  8: {
     collideWithBullet: false,
     collideWithTank: true,
     breakByBullet: false,
