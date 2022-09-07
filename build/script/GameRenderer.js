@@ -1,36 +1,35 @@
 class GameRenderer {
-	constructor({ ctx, model, width, height }) {
+	constructor({ ctx, canvasSize, sceneManager }) {
 		this._ctx = ctx;
-		this._model = model;
-		this._width = width;
-		this._height = height;
+		this._canvasSize = canvasSize;
+		this._sceneManager = sceneManager;
 	}
 
 	render() {
 		this._clear();
-		this._drawBackground();
-		this._drawLevel();
+		this._renderBackground();
+		this._renderScene();
+		/*this._drawLevel();
 		this._drawLevelBricks('bottom');
 		this._drawPlayer();
 		this._drawBullets();
-		this._drawLevelBricks('top');
-	}
-
-	setSize(width, height) {
-		this._width = width;
-		this._height = height;
+		this._drawLevelBricks('top');*/
 	}
 
 	_clear() {
-		this._ctx.clearRect(0, 0, this._width, this._height);
+		this._ctx.clearRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 	}
 
-	_drawBackground() {
-		this._ctx.fillStyle = '#636363';
-		this._ctx.fillRect(0, 0, this._width, this._height);
+	_renderBackground() {
+		this._ctx.fillStyle = '#000000';
+		this._ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 	}
 
-	_drawLevel() {
+	_renderScene() {
+		this._sceneManager.render(this._ctx);
+	}
+
+	/*_drawLevel() {
 		const level = this._model.getLevel();
 
 		const { width: levelMapWidth, height: levelMapHeight } = level.getMapSize();
@@ -60,5 +59,5 @@ class GameRenderer {
 		const bulletsStore = this._model.getBulletsStore();
 		const bullets = bulletsStore.getBullets();
 		bullets.forEach(bullet => bullet.render(this._ctx));
-	}
+	}*/
 }

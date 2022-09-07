@@ -1,11 +1,10 @@
 class GameModel {
-	constructor({ width, height, baseWidth, baseHeight }) {
-		this._width = width;
-		this._height = height;
-		this._baseWidth = baseWidth;
-		this._baseHeight = baseHeight;
+	constructor({ canvasSize, baseSize, sceneManager }) {
+		this._canvasSize = canvasSize;
+		this._baseSize = baseSize;
+		this._sceneManager = sceneManager;
 
-		this._levelIndex = 1;
+		/*this._levelIndex = 1;
 		this._level = new Level({
 			levelIndex: this._levelIndex,
 			width: this._width,
@@ -22,19 +21,15 @@ class GameModel {
 			baseHeight: this._baseHeight,
 			level: this._level,
 			bulletsStore: this._bulletsStore,
-		});
+		});*/
 	}
 
-	update(delta) {
+	/*update(delta) {
 		this._player.update(delta);
 		this._bulletsStore.update(delta);
 	}
 
-	setSize(width, height, baseWidth, baseHeight) {
-		this._width = width;
-		this._height = height;
-		this._baseWidth = baseWidth;
-		this._baseHeight = baseHeight;
+	setSize() {
 		this._setLevelSize();
 		this._setPlayerSize();
 		this._setBulletsSize();
@@ -83,5 +78,37 @@ class GameModel {
 
 	getBulletsStore() {
 		return this._bulletsStore;
+	}*/
+
+	showMainScene() {
+		this._sceneManager.setFutureScene(new MainScene({
+			model: this,
+			canvasSize: this._canvasSize,
+			baseSize: this._baseSize,
+		}));
+	}
+
+	prepareToNextLevel() {
+		this._sceneManager.setFutureScene(new IntroScene({
+			model: this,
+			canvasSize: this._canvasSize,
+			baseSize: this._baseSize,
+		}))
+	}
+
+	startLevel() {
+		this._sceneManager.setFutureScene(new CoreScene({
+			model: this,
+			canvasSize: this._canvasSize,
+			baseSize: this._baseSize,
+		}))
+	}
+
+	endLevel() {
+		this._sceneManager.setFutureScene(new ResultScene({
+			model: this,
+			canvasSize: this._canvasSize,
+			baseSize: this._baseSize,
+		}))
 	}
 }
