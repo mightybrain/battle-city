@@ -1,8 +1,10 @@
 class CoreScene {
-  constructor({ model, canvasSize, baseSize }) {
+  constructor({ model, canvasSize, stepSize, maxSteps, safeAreaPosition }) {
     this._model = model;
     this._canvasSize = canvasSize;
-    this._baseSize = baseSize;
+    this._stepSize = stepSize;
+    this._maxSteps = maxSteps;
+    this._safeAreaPosition = safeAreaPosition;
   }
 
 	update(delta) {

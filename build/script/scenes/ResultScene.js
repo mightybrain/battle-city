@@ -1,8 +1,10 @@
 class ResultScene {
-  constructor({ model, canvasSize, baseSize }) {
+  constructor({ model, canvasSize, stepSize, maxSteps, safeAreaPosition }) {
     this._model = model;
     this._canvasSize = canvasSize;
-    this._baseSize = baseSize;
+    this._stepSize = stepSize;
+    this._maxSteps = maxSteps;
+    this._safeAreaPosition = safeAreaPosition;
   }
 
 	update(delta) {
@@ -10,7 +12,7 @@ class ResultScene {
 	}
 
   render(ctx) {
-		ctx.fillStyle = 'blue';
+		ctx.fillStyle = '#000000';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
   }
 

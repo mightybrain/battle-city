@@ -7,11 +7,19 @@ class Game {
 			width: 0,
 			height: 0,
 		};
-		this._baseSize = {
+		this._stepSize = {
 			width: 0,
 			height: 0,
 		}
-		this._setSize();
+		this._maxSteps = {
+			x: 56,
+			y: 52,
+		}
+		this._safeAreaPosition = {
+			x: 0,
+			y: 0,
+		}
+		this._setSizeAndSafeAreaPosition();
 
 		this._sceneManager = new SceneManager({
 			canvasSize: this._canvasSize,
@@ -19,7 +27,9 @@ class Game {
 
 		this._model = new GameModel({
 			canvasSize: this._canvasSize,
-			baseSize: this._baseSize,
+			stepSize: this._stepSize,
+			maxSteps: this._maxSteps,
+			safeAreaPosition: this._safeAreaPosition,
 			sceneManager: this._sceneManager,
 		});
 
@@ -32,7 +42,7 @@ class Game {
 		this._prevTimestamp = 0;
 
 		this._addEventHandlers();
-		//this._startGame();
+		this._startGame();
 	}
 
 	_startGame() {
@@ -64,26 +74,29 @@ class Game {
 			this._sceneManager.handleKeyUp(event);
 		})
 		window.addEventListener('resize', () => {
-			this._setSize();
+			this._setSizeAndSafeAreaPosition();
 		});
 	}
 
-	_setSize() {
+	_setSizeAndSafeAreaPosition() {
 		this._canvasSize.width = document.documentElement.clientWidth;
 		this._canvasSize.height = document.documentElement.clientHeight;
 		this._canvas.width = this._canvasSize.width;
 		this._canvas.height = this._canvasSize.height;
 
-		let baseWidth = this._canvasSize.width * 0.81;
-		let baseHeight = baseWidth * 0.65;
+		let safeAreaWidth = this._canvasSize.width * 0.81;
+		let safeAreaHeight = safeAreaWidth * 0.65;
 
-		if (baseHeight + baseHeight * 0.18 > this._canvasSize.height) {
-			baseHeight = this._canvasSize.height * 0.85;
-			baseWidth = baseHeight * 1.53;
+		if (safeAreaHeight + safeAreaHeight * 0.18 > this._canvasSize.height) {
+			safeAreaHeight = this._canvasSize.height * 0.85;
+			safeAreaWidth = safeAreaHeight * 1.53;
 		}	
 
-		this._baseSize.width = Math.round(baseWidth / 52);
-		this._baseSize.height = Math.round(baseHeight / 52);
+		this._stepSize.width = Math.round(safeAreaWidth / this._maxSteps.x);
+		this._stepSize.height = Math.round(safeAreaHeight / this._maxSteps.y);
+
+		this._safeAreaPosition.x = (this._canvasSize.width - this._stepSize.width * this._maxSteps.x) / 2;
+		this._safeAreaPosition.y = (this._canvasSize.height - this._stepSize.height * this._maxSteps.y) / 2;
 	}
 }
 

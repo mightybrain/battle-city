@@ -1,11 +1,13 @@
 class GameModel {
-	constructor({ canvasSize, baseSize, sceneManager }) {
+	constructor({ canvasSize, stepSize, sceneManager, maxSteps, safeAreaPosition }) {
 		this._canvasSize = canvasSize;
-		this._baseSize = baseSize;
+		this._stepSize = stepSize;
+		this._maxSteps = maxSteps;
+		this._safeAreaPosition = safeAreaPosition;
 		this._sceneManager = sceneManager;
 
-		/*this._levelIndex = 1;
-		this._level = new Level({
+		this._levelNum = 1;
+		/*this._level = new Level({
 			levelIndex: this._levelIndex,
 			width: this._width,
 			height: this._height,
@@ -84,7 +86,9 @@ class GameModel {
 		this._sceneManager.setFutureScene(new MainScene({
 			model: this,
 			canvasSize: this._canvasSize,
-			baseSize: this._baseSize,
+			stepSize: this._stepSize,
+			maxSteps: this._maxSteps,
+			safeAreaPosition: this._safeAreaPosition,
 		}));
 	}
 
@@ -92,7 +96,7 @@ class GameModel {
 		this._sceneManager.setFutureScene(new IntroScene({
 			model: this,
 			canvasSize: this._canvasSize,
-			baseSize: this._baseSize,
+			stepSize: this._stepSize,
 		}))
 	}
 
@@ -100,7 +104,7 @@ class GameModel {
 		this._sceneManager.setFutureScene(new CoreScene({
 			model: this,
 			canvasSize: this._canvasSize,
-			baseSize: this._baseSize,
+			stepSize: this._stepSize,
 		}))
 	}
 
@@ -108,7 +112,11 @@ class GameModel {
 		this._sceneManager.setFutureScene(new ResultScene({
 			model: this,
 			canvasSize: this._canvasSize,
-			baseSize: this._baseSize,
+			stepSize: this._stepSize,
 		}))
+	}
+
+	getLevelNum() {
+		return this._levelNum;
 	}
 }
