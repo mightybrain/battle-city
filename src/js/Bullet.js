@@ -1,81 +1,61 @@
 class Bullet {
-  constructor({ position, baseWidth, baseHeight, level, direction, bulletSizeScaleFactor, bulletSpeedPerSecondScaleFactor }) {
+  constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, player, owner }) {
+    this._stepSize = stepSize;
+    this._prevStepSizeWidth = this._stepSize.width;
+    this._prevStepSizeHeight = this._stepSize.height;
+    this._safeAreaPosition = safeAreaPosition;
+    this._prevSafeAreaPositionX = this._safeAreaPosition.x;
+    this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+
+    this._bulletsStore = bulletsStore;
+    this._enemiesStore = enemiesStore;
+    this._player = player;
+    this._owner = owner;
+
     this._level = level;
-    this._levelMapPositionX = this._level.getMapPosition().x;
-    this._levelMapPositionY = this._level.getMapPosition().y;
-
-    this._baseWidth = baseWidth;
-    this._baseHeight = baseHeight;
-
-    this._sizeScaleFactor = bulletSizeScaleFactor;
-    this._width = this._baseWidth * this._sizeScaleFactor;
-    this._height = this._baseHeight * this._sizeScaleFactor;
-
-    this._position = {
-      x: position.x,
-      y: position.y,
-    };
 
     this._direction = {
       x: direction.x,
       y: direction.y,
     };
-
-    this._speedPerSecondScaleFactor = bulletSpeedPerSecondScaleFactor;
     this._velocity = {
-      x: this._direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
-      y: this._direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
+      x: 0,
+      y: 0,
     };
+    this._position = {
+      x: position.x,
+      y: position.y,
+    };
+    this.setSize({ initial: true });
 
     this._destroyed = false;
-
-    this._sprite = new Image();
-    this._sprite.src = 'images/bullet.png';
-
-    this._loaded = false;
-
-    this._sprite.addEventListener('load', () => {
-      this._loaded = true;
-    })
   }
 
-  setSize({ baseWidth, baseHeight }) {
-    const coords = {
-      x: (this._position.x - this._levelMapPositionX) / this._baseWidth,
-      y: (this._position.y - this._levelMapPositionY) / this._baseHeight,
-    }
+  setSize({ initial = false } = {}) {
+    this._velocity.x = this._direction.x * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
+    this._velocity.y = this._direction.y * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 
-    this._levelMapPositionX = this._level.getMapPosition().x;
-    this._levelMapPositionY = this._level.getMapPosition().y;
-    this._baseWidth = baseWidth;
-    this._baseHeight = baseHeight;
-    this._position = {
-      x: coords.x * this._baseWidth + this._levelMapPositionX,
-      y: coords.y * this._baseHeight + this._levelMapPositionY,
+    if (!initial) {
+      const coords = {
+        x: (this._position.x - this._prevSafeAreaPositionX) / this._prevStepSizeWidth,
+        y: (this._position.y - this._prevSafeAreaPositionY) / this._prevStepSizeHeight,
+      }
+      this._position.x = this._safeAreaPosition.x + this._stepSize.width * coords.x;
+      this._position.y = this._safeAreaPosition.y + this._stepSize.height * coords.y;
+
+      this._prevStepSizeWidth = this._stepSize.width;
+      this._prevStepSizeHeight = this._stepSize.height;
+      this._prevSafeAreaPositionX = this._safeAreaPosition.x;
+      this._prevSafeAreaPositionY = this._safeAreaPosition.y;
     }
-    this._width = this._baseWidth * this._sizeScaleFactor;
-    this._height = this._baseHeight * this._sizeScaleFactor;
-    this._velocity = {
-      x: this._direction.x * this._speedPerSecondScaleFactor * this._baseWidth,
-      y: this._direction.y * this._speedPerSecondScaleFactor * this._baseHeight,
-    };
   }
 
   render(ctx) {
-    if (!this._loaded) return;
-
-		//ctx.fillStyle = '#ffffff';
-		//ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
-
-    let spriteOffset = 0;
-    if (this._velocity.x > 0) spriteOffset = this._sprite.width * .75;
-    else if (this._velocity.x < 0) spriteOffset = this._sprite.width * .5;
-    else if (this._velocity.y > 0) spriteOffset = this._sprite.width * .25;
-
-    ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._width, this._height);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
   }
 
-  update(delta) {
+  update({ delta }) {
     let position = {
       x: this._position.x + this._velocity.x * delta,
       y: this._position.y + this._velocity.y * delta,
@@ -84,32 +64,190 @@ class Bullet {
     const positionWithLevelEdgesCollision = this._updatePositionWithLevelEdgesCollision(position);
     if (positionWithLevelEdgesCollision !== position) {
       position = positionWithLevelEdgesCollision;
-      this._destroy();
+      this.destroy();
       return;
     }
 
     const { position: positionWithLevelBricksCollision, bricksForDestroy } = this._updatePositionWithLevelBricksCollision(position);
     if (positionWithLevelBricksCollision !== position) {
       position = positionWithLevelBricksCollision;
-      this._destroy();
+      this.destroy();
       this._level.destroyBricks(bricksForDestroy);
+      return;
+    }
+
+    const { position: positionWithBulletsCollision, bulletsForDestroy } = this._updatePositionWithBulletsCollision(position);
+    if (positionWithBulletsCollision !== position) {
+      position = positionWithBulletsCollision;
+      this.destroy();
+      bulletsForDestroy.forEach(item => item.destroy());
+      return;
+    }
+
+    const { position: positionWithEnemiesCollision, enemiesForDestroy } = this._updatePositionWithEnemiesCollision(position);
+    if (positionWithEnemiesCollision !== position) {
+      position = positionWithEnemiesCollision;
+      this.destroy();
+      enemiesForDestroy.forEach(item => item.destroy());
+      return;
+    }
+
+    const positionWithPlayerCollision = this._updatePositionWithPlayerCollision(position);
+    if (positionWithPlayerCollision !== position) {
+      position = positionWithPlayerCollision;
+      this.destroy();
+      this._player.destroy();
       return;
     }
 
     this._position = position;
   }
 
-  _updatePositionWithLevelEdgesCollision(position) {
-    const { width: levelMapWidth, height: levelMapHeight } = this._level.getMapSize();
+  _updatePositionWithPlayerCollision(position) {
+    if (this._owner instanceof Player) return position;
 
-    if (position.x + this._width > this._levelMapPositionX + levelMapWidth) {
-      return { ...position, x: this._levelMapPositionX + levelMapWidth - this._width };
-    } else if (position.x < this._levelMapPositionX) {
-      return { ...position, x: this._levelMapPositionX };
-    } else if (position.y + this._height > this._levelMapPositionY + levelMapHeight) {
-      return { ...position, y: this._levelMapPositionY + levelMapHeight - this._height };
-    } else if (position.y < this._levelMapPositionY) {
-      return { ...position, y: this._levelMapPositionY };
+    const playerBoundaryBox = this._player.getBoundaryBox();
+
+    const collision = 
+      position.x + this._stepSize.width > playerBoundaryBox.x1 &&
+      position.x < playerBoundaryBox.x2 &&
+      position.y + this._stepSize.height > playerBoundaryBox.y1 &&
+      position.y < playerBoundaryBox.y2;
+
+    if (!collision) return position;
+    else if (this._velocity.x > 0) {
+      return { ...position, x: this._player.getPosition().x - this._stepSize.width };
+    } else if (this._velocity.x < 0) {
+      return { ...position, x: this._player.getPosition().x + this._player.getSize().width };
+    } else if (this._velocity.y > 0) {
+      return { ...position, y: this._player.getPosition().y - this._stepSize.height };
+    } else if (this._velocity.y < 0) {
+      return { ...position, y: this._player.getPosition().y + this._player.getSize().height };
+    }
+  }
+
+  _updatePositionWithBulletsCollision(position) {
+    const bulletsWithCollision = this._bulletsStore
+      .getBullets()
+      .filter(bullet => {
+        if (bullet === this) return false;
+        if (bullet.getOwner() instanceof Enemy && this._owner instanceof Enemy) return false;
+
+        const bulletBoundaryBox = bullet.getBoundaryBox();
+
+        return position.x + this._stepSize.width > bulletBoundaryBox.x1 &&
+          position.x < bulletBoundaryBox.x2 &&
+          position.y + this._stepSize.height > bulletBoundaryBox.y1 &&
+          position.y < bulletBoundaryBox.y2;
+      })
+
+    const closestBulletWithCollision = this._findClosestBullet(bulletsWithCollision);
+
+    if (!closestBulletWithCollision) return { position };
+    else if (this._velocity.x > 0) {
+      return { 
+        position: { ...position, x: closestBulletWithCollision.getPosition().x - this._stepSize.width },
+        bulletsForDestroy: bulletsWithCollision,
+      }
+    } else if (this._velocity.x < 0) {
+      return {
+        position: { ...position, x: closestBulletWithCollision.getPosition().x + closestBulletWithCollision.getSize().width },
+        bulletsForDestroy: bulletsWithCollision,
+      }
+    } else if (this._velocity.y > 0) {
+      return {
+        position: { ...position, y: closestBulletWithCollision.getPosition().y - this._stepSize.height },
+        bulletsForDestroy: bulletsWithCollision,
+      }
+    } else if (this._velocity.y < 0) {
+      return {
+        position: { ...position, y: closestBulletWithCollision.getPosition().y + closestBulletWithCollision.getSize().height },
+        bulletsForDestroy: bulletsWithCollision,
+      }
+    }
+  }
+
+  _findClosestBullet(bullets) {
+    if (!bullets.length) return null;
+
+    const axis = this._velocity.x ? 'x' : 'y';
+
+    return bullets.reduce((total, bullet) => {
+      if (!total) return bullet;
+
+      const currentDistance = Math.abs(bullet.getPosition()[axis] - this._position[axis]);
+      const prevDistance = Math.abs(bullet.getPosition()[axis] - this._position[axis])
+
+      return currentDistance < prevDistance ? bullet : total;
+    }, null)
+  }
+
+  _updatePositionWithEnemiesCollision(position) {
+    const enemiesWithCollision = this._enemiesStore
+      .getEnemies()
+      .filter(enemy => {
+        if (this._owner instanceof Enemy) return false;
+
+        const enemyBoundaryBox = enemy.getBoundaryBox();
+
+        return position.x + this._stepSize.width > enemyBoundaryBox.x1 &&
+          position.x < enemyBoundaryBox.x2 &&
+          position.y + this._stepSize.height > enemyBoundaryBox.y1 &&
+          position.y < enemyBoundaryBox.y2;
+      })
+
+    const closestEnemyWithCollision = this._findClosestEnemy(enemiesWithCollision);
+
+    if (!closestEnemyWithCollision) return { position };
+    else if (this._velocity.x > 0) {
+      return { 
+        position: { ...position, x: closestEnemyWithCollision.getPosition().x - this._stepSize.width },
+        enemiesForDestroy: enemiesWithCollision,
+      }
+    } else if (this._velocity.x < 0) {
+      return {
+        position: { ...position, x: closestEnemyWithCollision.getPosition().x + closestEnemyWithCollision.getSize().width },
+        enemiesForDestroy: enemiesWithCollision,
+      }
+    } else if (this._velocity.y > 0) {
+      return {
+        position: { ...position, y: closestEnemyWithCollision.getPosition().y - this._stepSize.height },
+        enemiesForDestroy: enemiesWithCollision,
+      }
+    } else if (this._velocity.y < 0) {
+      return {
+        position: { ...position, y: closestEnemyWithCollision.getPosition().y + closestEnemyWithCollision.getSize().height },
+        enemiesForDestroy: enemiesWithCollision,
+      }
+    }
+  }
+
+  _findClosestEnemy(enemies) {
+    if (!enemies.length) return null;
+
+    const axis = this._velocity.x ? 'x' : 'y';
+
+    return enemies.reduce((total, enemy) => {
+      if (!total) return enemy;
+
+      const currentDistance = Math.abs(enemy.getPosition()[axis] - this._position[axis]);
+      const prevDistance = Math.abs(enemy.getPosition()[axis] - this._position[axis])
+
+      return currentDistance < prevDistance ? enemy : total;
+    }, null)
+  }
+
+  _updatePositionWithLevelEdgesCollision(position) {
+    const { width: levelWidth, height: levelHeight } = this._level.getMapSize();
+
+    if (position.x + this._stepSize.width > this._safeAreaPosition.x + levelWidth) {
+      return { ...position, x: this._safeAreaPosition.x + levelWidth - this._stepSize.width };
+    } else if (position.x < this._safeAreaPosition.x) {
+      return { ...position, x: this._safeAreaPosition.x };
+    } else if (position.y + this._stepSize.height > this._safeAreaPosition.y + levelHeight) {
+      return { ...position, y: this._safeAreaPosition.y + levelHeight - this._stepSize.height };
+    } else if (position.y < this._safeAreaPosition.y) {
+      return { ...position, y: this._safeAreaPosition.y };
     } else return position;
   }
 
@@ -117,39 +255,39 @@ class Bullet {
     let area;
     if (this._velocity.x > 0) {
       area = {
-        x1: this._position.x + this._width,
+        x1: this._position.x + this._stepSize.width,
         y1: this._position.y,
-        x2: position.x + this._width,
-        y2: position.y + this._height,
+        x2: position.x + this._stepSize.width,
+        y2: position.y + this._stepSize.height,
       }
     } else if (this._velocity.x < 0) {
       area = {
         x1: position.x,
         y1: position.y,
         x2: this._position.x,
-        y2: this._position.y + this._height,
+        y2: this._position.y + this._stepSize.height,
       }
     } else if (this._velocity.y > 0) {
       area = {
         x1: this._position.x,
-        y1: this._position.y + this._height,
-        x2: position.x + this._width,
-        y2: position.y + this._height,
+        y1: this._position.y + this._stepSize.height,
+        x2: position.x + this._stepSize.width,
+        y2: position.y + this._stepSize.height,
       }
     } else if (this._velocity.y < 0) {
       area = {
         x1: position.x,
         y1: position.y,
-        x2: this._position.x + this._width,
+        x2: this._position.x + this._stepSize.width,
         y2: this._position.y,
       }
     }
 
     const coords = {
-      x1: Math.floor((area.x1 - this._levelMapPositionX) / this._baseWidth),
-      y1: Math.floor((area.y1 - this._levelMapPositionY) / this._baseHeight),
-      x2: Math.ceil((area.x2 - this._levelMapPositionX) / this._baseWidth),
-      y2: Math.ceil((area.y2 - this._levelMapPositionY) / this._baseHeight),
+      x1: Math.floor((area.x1 - this._safeAreaPosition.x) / this._stepSize.width),
+      y1: Math.floor((area.y1 - this._safeAreaPosition.y) / this._stepSize.height),
+      x2: Math.ceil((area.x2 - this._safeAreaPosition.x) / this._stepSize.width),
+      y2: Math.ceil((area.y2 - this._safeAreaPosition.y) / this._stepSize.height),
     }
 
     const bricksWithCollision = this._level
@@ -179,7 +317,7 @@ class Bullet {
     if (!bricksForDestroy) return { position };
     else if (this._velocity.x > 0) {
       return { 
-        position: { ...position, x: bricksForDestroy[0].getPosition().x - this._width },
+        position: { ...position, x: bricksForDestroy[0].getPosition().x - this._stepSize.width },
         bricksForDestroy,
       }
     } else if (this._velocity.x < 0) {
@@ -189,7 +327,7 @@ class Bullet {
       }
     } else if (this._velocity.y > 0) {
       return {
-        position: { ...position, y: bricksForDestroy[0].getPosition().y - this._height },
+        position: { ...position, y: bricksForDestroy[0].getPosition().y - this._stepSize.height },
         bricksForDestroy,
       }
     } else if (this._velocity.y < 0) {
@@ -236,11 +374,34 @@ class Bullet {
     }, [])
   }
 
-  _destroy() {
+  destroy() {
     this._destroyed = true;
   }
 
-  isDestroyed() {
+  getDestroyed() {
     return this._destroyed;
   }
+
+  getSize() {
+    return this._stepSize;
+  }
+
+  getPosition() {
+    return this._position;
+  }
+
+  getOwner() {
+    return this._owner;
+  }
+
+  getBoundaryBox() {
+    return {
+      x1: this._position.x,
+      y1: this._position.y,
+      x2: this._position.x + this._stepSize.width,
+      y2: this._position.y + this._stepSize.height,
+    }
+  }
 }
+
+Bullet.SPEED_PER_SECOND_SCALE_FACTOR = 18;

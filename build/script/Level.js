@@ -1,65 +1,68 @@
 class Level {
-  constructor({ levelIndex, width, height, baseWidth, baseHeight }) {
-    this._width = width;
-    this._height = height;
-    this._baseWidth = baseWidth;
-    this._baseHeight = baseHeight;
+  constructor({ canvasSize, stepSize, safeAreaPosition, state }) {
+    this._canvasSize = canvasSize;
+    this._stepSize = stepSize;
+    this._safeAreaPosition = safeAreaPosition;
+    this._state = state;
+    this._levelIndex = this._state.getLevelIndex();
 
-    this._mapWidth = 0;
-    this._mapHeight = 0;
-    this._mapPosition = {
-      x: 0,
-      y: 0,
-    };
-    this._setMapSizeAndPosition();
-    this._map = this._setMap(Level.maps[levelIndex]);
-  }
+    this._mapSize = {
+      width: 0,
+      height: 0,
+    }
 
-  _setMapSizeAndPosition() {
-		this._mapWidth = this._baseWidth * 52;
-		this._mapHeight = this._baseHeight * 52;
-		this._mapPosition.x = Math.round((this._width - this._mapWidth) / 2 - this._baseWidth * 2);
-		this._mapPosition.y = Math.round((this._height - this._mapHeight) / 2);
+    this._map = this._setMap(Level.MAPS[this._levelIndex]);
+    
+    this.setSize();
   }
 
   _setMap(map) {
-		return map
-      .map((row, y) => {
-        return row
-          .map((key, x) => key ? new Brick({ ...Brick.types[key], coords: { x, y }, baseWidth: this._baseWidth, baseHeight: this._baseHeight, levelMapPosition: this._mapPosition }) : key)
+		return map.map((row, y) => {
+      return row.map((key, x) => {
+        
+        if (!key) return key;
+
+        return new Brick({
+          ...Brick.TYPES[key],
+          coords: { x, y },
+          stepSize: this._stepSize,
+          safeAreaPosition: this._safeAreaPosition,
+        })
       })
+    })
   }
 
-  _setBricksSize() {
-    this._map.forEach(row => {
-      row.forEach(brick => {
-        if (brick) {
-          brick.setSize({
-            baseWidth: this._baseWidth,
-            baseHeight: this._baseHeight,
-            levelMapPosition: this._mapPosition,
-          })
-        }
-      })
-    });
+  render(ctx, layer) {
+    if (layer === 'bottom') {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(this._safeAreaPosition.x, this._safeAreaPosition.y, this._mapSize.width, this._mapSize.height);
+    }
+
+		this._map.forEach(row => {
+			row.forEach(brick => {
+				if (brick && brick.getLayer() === layer) brick.render(ctx);
+			})
+		})
   }
 
-  setSize({ width, height, baseWidth, baseHeight }) {
-    this._width = width;
-    this._height = height;
-    this._baseWidth = baseWidth;
-    this._baseHeight = baseHeight;
-    this._setMapSizeAndPosition();
-    this._setBricksSize();
+  setSize() {
+    this._mapSize.width = this._stepSize.width * Level.MAP_WIDTH_SCALE_FACTOR;
+    this._mapSize.height = this._stepSize.height * Level.MAP_HEIGHT_SCALE_FACTOR;
+
+		this._map.forEach(row => {
+			row.forEach(brick => {
+        if (brick) brick.setSize();
+			})
+		})
   }
 
   destroyBricks(bricks) {
-    for (let i = 0; i < bricks.length; i++) {
-      if (!bricks[i].getBreakByBullet()) continue;
-      
-      const { x, y } = bricks[i].getCoords();
-      this._map[y][x] = 0;
-    }
+    bricks.forEach(brick => {
+      if (brick.getBreakByBullet()) {
+        const { x, y } = brick.getCoords();
+        this._map[y][x] = 0;
+      }
+    })
   }
 
   getMap() {
@@ -67,18 +70,13 @@ class Level {
   }
 
   getMapSize() {
-    return {
-      width: this._mapWidth,
-      height: this._mapHeight,
-    }
-  }
-
-  getMapPosition() {
-    return this._mapPosition;
+    return this._mapSize;
   }
 }
 
-Level.maps = {
+Level.MAP_WIDTH_SCALE_FACTOR = 52;
+Level.MAP_HEIGHT_SCALE_FACTOR = 52;
+Level.MAPS = {
   1: [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

@@ -3,13 +3,17 @@ class BulletsStore {
     this._bullets = [];
   }
 
-  update(delta) {
-    this._bullets.forEach(bullet => bullet.update(delta));
-    this._bullets = this._bullets.filter(bullet => !bullet.isDestroyed());
+  update(time) {
+    this._bullets.forEach(bullet => bullet.update(time));
+    this._bullets = this._bullets.filter(bullet => !bullet.getDestroyed());
   }
 
-  setBulletsSize({ baseWidth, baseHeight }) {
-    this._bullets.forEach(bullet => bullet.setSize({ baseWidth, baseHeight }));
+  render(ctx) {
+		this._bullets.forEach(bullet => bullet.render(ctx));
+  }
+
+  setSize() {
+    this._bullets.forEach(bullet => bullet.setSize());
   }
 
   addBullet(bullet) {

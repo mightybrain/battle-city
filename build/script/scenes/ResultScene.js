@@ -1,15 +1,19 @@
 class ResultScene {
-  constructor({ model, canvasSize, stepSize, maxSteps, safeAreaPosition }) {
-    this._model = model;
+  constructor({ state, canvasSize, stepSize, safeAreaPosition,sceneManager }) {
+    this._state = state;
     this._canvasSize = canvasSize;
     this._stepSize = stepSize;
-    this._maxSteps = maxSteps;
     this._safeAreaPosition = safeAreaPosition;
+    this._sceneManager = sceneManager
   }
 
-	update(delta) {
+	update(time) {
 
 	}
+
+  setSize() {
+    
+  }
 
   render(ctx) {
 		ctx.fillStyle = '#000000';
@@ -21,6 +25,6 @@ class ResultScene {
   }
 
 	handleKeyUp(code) {
-    if (code === 'Enter') this._model.prepareToNextLevel();
+    if (code === 'Enter') this._sceneManager.showIntroScene();
 	}
 }

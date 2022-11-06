@@ -10,30 +10,20 @@ class Game {
 		this._stepSize = {
 			width: 0,
 			height: 0,
-		}
-		this._maxSteps = {
-			x: 56,
-			y: 52,
-		}
+		};
 		this._safeAreaPosition = {
 			x: 0,
 			y: 0,
-		}
-		this._setSizeAndSafeAreaPosition();
+		};
+		this._setSize();
 
 		this._sceneManager = new SceneManager({
 			canvasSize: this._canvasSize,
-		});
-
-		this._model = new GameModel({
-			canvasSize: this._canvasSize,
 			stepSize: this._stepSize,
-			maxSteps: this._maxSteps,
 			safeAreaPosition: this._safeAreaPosition,
-			sceneManager: this._sceneManager,
 		});
 
-		this._renderer = new GameRenderer({
+		this._renderer = new Renderer({
 			ctx: this._ctx,
 			canvasSize: this._canvasSize,
 			sceneManager: this._sceneManager,
@@ -46,7 +36,7 @@ class Game {
 	}
 
 	_startGame() {
-		this._model.showMainScene();
+		this._sceneManager.showMainScene();
 
 		requestAnimationFrame(timestamp => {
 			this._gameLoop(timestamp);
@@ -59,11 +49,13 @@ class Game {
 		});
 
 		if (this._prevTimestamp) {
-			const delta = (timestamp - this._prevTimestamp) / 1000;
-			this._sceneManager.update(delta);
+			const prevFrameDuration = timestamp - this._prevTimestamp;
+			const delta = prevFrameDuration / 1000;
+			this._sceneManager.update({ delta, prevFrameDuration, timestamp });
+			this._renderer.render();
 		}
+
 		this._prevTimestamp = timestamp;
-		this._renderer.render();
 	}
 
 	_addEventHandlers() {
@@ -74,30 +66,38 @@ class Game {
 			this._sceneManager.handleKeyUp(event);
 		})
 		window.addEventListener('resize', () => {
-			this._setSizeAndSafeAreaPosition();
+			this._setSize();
+			this._sceneManager.setSize();
 		});
 	}
 
-	_setSizeAndSafeAreaPosition() {
+	_setSize() {
 		this._canvasSize.width = document.documentElement.clientWidth;
 		this._canvasSize.height = document.documentElement.clientHeight;
 		this._canvas.width = this._canvasSize.width;
 		this._canvas.height = this._canvasSize.height;
 
-		let safeAreaWidth = this._canvasSize.width * 0.81;
+		let safeAreaWidth = this._canvasSize.width - 40;
 		let safeAreaHeight = safeAreaWidth * 0.65;
 
-		if (safeAreaHeight + safeAreaHeight * 0.18 > this._canvasSize.height) {
-			safeAreaHeight = this._canvasSize.height * 0.85;
+		if (safeAreaHeight + 40 > this._canvasSize.height) {
+			safeAreaHeight = this._canvasSize.height - 40;
 			safeAreaWidth = safeAreaHeight * 1.53;
 		}	
 
-		this._stepSize.width = Math.round(safeAreaWidth / this._maxSteps.x);
-		this._stepSize.height = Math.round(safeAreaHeight / this._maxSteps.y);
+		this._stepSize.width = Math.round(safeAreaWidth / Game.MAX_STEPS.x);
+		this._stepSize.height = Math.round(safeAreaHeight / Game.MAX_STEPS.y);
 
-		this._safeAreaPosition.x = (this._canvasSize.width - this._stepSize.width * this._maxSteps.x) / 2;
-		this._safeAreaPosition.y = (this._canvasSize.height - this._stepSize.height * this._maxSteps.y) / 2;
+		this._safeAreaPosition.x = Math.round((this._canvasSize.width - this._stepSize.width * Game.MAX_STEPS.x) / 2);
+		this._safeAreaPosition.y = Math.round((this._canvasSize.height - this._stepSize.height * Game.MAX_STEPS.y) / 2);
 	}
 }
 
-new Game(document.getElementById('canvas'));
+addEventListener('DOMContentLoaded', () => {
+	new Game(document.getElementById('battle-city'));
+})
+
+Game.MAX_STEPS = {
+	x: 56,
+	y: 52,
+}

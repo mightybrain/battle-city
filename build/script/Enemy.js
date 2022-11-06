@@ -1,15 +1,17 @@
-class Player {
-  constructor({ stepSize, safeAreaPosition, level, bulletsStore, enemiesStore }) {
+class Enemy {
+  constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, player, enemiesStore }) {
     this._stepSize = stepSize;
     this._prevStepSizeWidth = this._stepSize.width;
     this._prevStepSizeHeight = this._stepSize.height;
     this._safeAreaPosition = safeAreaPosition;
     this._prevSafeAreaPositionX = this._safeAreaPosition.x;
     this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+    this._initialCoords = initialCoords;
+    this._player = player;
+    this._enemiesStore = enemiesStore;
 
     this._level = level;
     this._bulletsStore = bulletsStore;
-    this._enemiesStore = enemiesStore;
 
     this._size = {
       width: 0,
@@ -19,16 +21,15 @@ class Player {
       x: 0,
       y: 0,
     };
-    this.setSize({ initial: true });
-
+    this._direction = {
+      x: 0,
+      y: 1,
+    };
     this._velocity = {
       x: 0,
       y: 0,
     };
-    this._direction = {
-      x: 0,
-      y: -1,
-    };
+    this.setSize({ initial: true });
 
     this._reload = false;
     this._personalBullets = [];
@@ -39,26 +40,26 @@ class Player {
     this._sprite.addEventListener('load', () => {
       this._loaded = true;
     })
-    this._sprite.src = 'images/player-01.png';
+    this._sprite.src = 'images/enemy-01.png';
 
-    this._destroyed = false;
-  }
+    this._prevChangeDirectionTime = 0;
+    this._nextChangeDirectionTime = 0;
+    this._prevShootTime = 0;
+    this._nextShootTime = 0;
 
-  respawn() {
-    this._direction.x = 0;
-    this._direction.y = -1;
-    this._position.x = this._safeAreaPosition.x + this._stepSize.width * Player.INITIAL_COORDS.x;
-    this._position.y = this._safeAreaPosition.y + this._stepSize.height * Player.INITIAL_COORDS.y;
     this._destroyed = false;
   }
 
   setSize({ initial = false } = {}) {
-    this._size.width = this._stepSize.width * Player.SIZE_SCALE_FACTOR;
-    this._size.height = this._stepSize.height * Player.SIZE_SCALE_FACTOR;
+    this._size.width = this._stepSize.width * Enemy.SIZE_SCALE_FACTOR;
+    this._size.height = this._stepSize.height * Enemy.SIZE_SCALE_FACTOR;
+
+    this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
+    this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 
     if (initial) {
-      this._position.x = this._safeAreaPosition.x + this._stepSize.width * Player.INITIAL_COORDS.x;
-      this._position.y = this._safeAreaPosition.y + this._stepSize.height * Player.INITIAL_COORDS.y;
+      this._position.x = this._safeAreaPosition.x + this._stepSize.width * this._initialCoords.x;
+      this._position.y = this._safeAreaPosition.y + this._stepSize.height * this._initialCoords.y;
     } else {
       const coords = {
         x: (this._position.x - this._prevSafeAreaPositionX) / this._prevStepSizeWidth,
@@ -71,9 +72,6 @@ class Player {
       this._prevStepSizeHeight = this._stepSize.height;
       this._prevSafeAreaPositionX = this._safeAreaPosition.x;
       this._prevSafeAreaPositionY = this._safeAreaPosition.y;
-
-      if (this._velocity.x) this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
-      if (this._velocity.y) this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
     }
   }
 
@@ -88,10 +86,26 @@ class Player {
     ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._size.width, this._size.height);
   }
 
-  update({ delta }) {
+  update({ delta, timestamp }) {
     this._personalBullets = this._personalBullets.filter(bullet => !bullet.getDestroyed());
 
-    if (!this._velocity.x && !this._velocity.y) return;
+    if (!this._prevShootTime) {
+      this._prevShootTime = timestamp;
+      this._nextShootTime = this._prevShootTime + getRandomFromRange(500, 5000);
+    } else if (timestamp > this._nextShootTime) {
+      this._prevShootTime = timestamp;
+      this._nextShootTime = this._prevShootTime + getRandomFromRange(500, 5000);
+      this._shoot();
+    }
+
+    if (!this._prevChangeDirectionTime) {
+      this._prevChangeDirectionTime = timestamp;
+      this._nextChangeDirectionTime = this._prevChangeDirectionTime + getRandomFromRange(500, 5000);
+    } else if (timestamp > this._nextChangeDirectionTime) {
+      this._prevChangeDirectionTime = timestamp;
+      this._nextChangeDirectionTime = this._prevChangeDirectionTime + getRandomFromRange(500, 5000);
+      this._setRandomDirection();
+    }
 
     let position;
     if (this._velocity.x) {
@@ -106,6 +120,7 @@ class Player {
       }
     }
     position = this._updatePositionWithLevelEdgesCollision(position);
+    position = this._updatePositionWithPlayerCollision(position);
     position = this._updatePositionWithEnemiesCollision(position);
     position = this._updatePositionWithLevelBricksCollision(position);
     this._position = position;
@@ -117,10 +132,28 @@ class Player {
       Math.round((positionByAxis - this._safeAreaPosition.y) / this._stepSize.height) * this._stepSize.height + this._safeAreaPosition.y;
   }
 
+  _updatePositionWithPlayerCollision(position) {
+    const playerBoundaryBox = this._player.getRoundedBoundaryBox();
+
+    const collision = 
+      position.x + this._size.width > playerBoundaryBox.x1 &&
+      position.x < playerBoundaryBox.x2 &&
+      position.y + this._size.height > playerBoundaryBox.y1 &&
+      position.y < playerBoundaryBox.y2;
+
+    if (!collision) return position;
+    else if (this._velocity.x > 0) return { ...position, x: playerBoundaryBox.x1 - this._size.width };
+    else if (this._velocity.x < 0) return { ...position, x: playerBoundaryBox.x2 };
+    else if (this._velocity.y > 0) return { ...position, y: playerBoundaryBox.y1 - this._size.height };
+    else if (this._velocity.y < 0) return { ...position, y: playerBoundaryBox.y2 };
+  }
+
   _updatePositionWithEnemiesCollision(position) {
     const enemies = this._enemiesStore.getEnemies();
 
     const enemiesWithCollision = enemies.filter(enemy => {
+      if (enemy === this) return false;
+      
       const enemyBoundaryBox = enemy.getRoundedBoundaryBox();
 
       return position.x + this._size.width > enemyBoundaryBox.x1 &&
@@ -273,7 +306,7 @@ class Player {
         y: this._direction.y,
       },
       owner: this,
-      player: this,
+      player: this._player,
       enemiesStore: this._enemiesStore,
       bulletsStore: this._bulletsStore,
     })
@@ -282,14 +315,7 @@ class Player {
 
     setTimeout(() => {
       this._reload = false;
-    }, Player.RELOAD_DELAY)
-  }
-
-  getSizeAndPosition() {
-    return {
-      size: this._size,
-      position: this._position,
-    }
+    }, Enemy.RELOAD_DELAY)
   }
 
   getPosition() {
@@ -300,12 +326,10 @@ class Player {
     return this._size;
   }
 
-  getBoundaryBox() {
+  getSizeAndPosition() {
     return {
-      x1: this._position.x,
-      y1: this._position.y,
-      x2: this._position.x + this._size.width,
-      y2: this._position.y + this._size.height,
+      size: this._size,
+      position: this._position,
     }
   }
 
@@ -322,67 +346,51 @@ class Player {
     }
   }
 
-  getDestroyed() {
-    return this._destroyed;
+  getBoundaryBox() {
+    return {
+      x1: this._position.x,
+      y1: this._position.y,
+      x2: this._position.x + this._size.width,
+      y2: this._position.y + this._size.height,
+    }
   }
 
   destroy() {
     this._destroyed = true;
   }
 
-	handleKeyDown(code) {
-    if (this._destroyed) return;
+  getDestroyed() {
+    return this._destroyed;
+  }
 
-    if (code === Player.SHOOT_EVENT) this._shoot();
+	_setRandomDirection() {
+    const direction = getRandomFromRange(1, 4);
 
-    if (Player.MOVE_EVENTS.includes(code)) {
-      switch (code) {
-        case 'ArrowUp':
-          this._direction.x = 0;
-          this._direction.y = -1;
-          break;
-        case 'ArrowDown':
-          this._direction.x = 0;
-          this._direction.y = 1;
-          break;
-        case 'ArrowRight':
-          this._direction.x = 1;
-          this._direction.y = 0;
-          break;
-        case 'ArrowLeft':
-          this._direction.x = -1;
-          this._direction.y = 0;
-          break;
-      }
-
-      this._velocity = {
-        x: this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width,
-        y: this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height,
-      }
+    switch (direction) {
+      case 1:
+        this._direction.x = 0;
+        this._direction.y = -1;
+        break;
+      case 2:
+        this._direction.x = 0;
+        this._direction.y = 1;
+        break;
+      case 3:
+        this._direction.x = 1;
+        this._direction.y = 0;
+        break;
+      case 4:
+        this._direction.x = -1;
+        this._direction.y = 0;
+        break;
     }
-	}
 
-	handleKeyUp(code) {    
-    if (this._destroyed) return;
-
-    if (Player.MOVE_EVENTS.includes(code)) {
-      const mustStop = 
-        (code === 'ArrowUp' && this._velocity.y < 0) ||
-        (code === 'ArrowDown' && this._velocity.y > 0) ||
-        (code === 'ArrowRight' && this._velocity.x > 0) ||
-        (code === 'ArrowLeft' && this._velocity.x < 0);
-      if (mustStop) this._velocity = { x: 0, y: 0 }
-    };
+    this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
+    this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 	}
 }
 
-Player.SIZE_SCALE_FACTOR = 4;
-Player.INITIAL_COORDS = {
-  x: 18,
-  y: 48,
-}
-Player.SPEED_PER_SECOND_SCALE_FACTOR = 6;
-Player.RELOAD_DELAY = 700;
-Player.MAX_PERSONAL_BULLETS = 1;
-Player.MOVE_EVENTS = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
-Player.SHOOT_EVENT = 'Space';
+Enemy.SIZE_SCALE_FACTOR = 4;
+Enemy.SPEED_PER_SECOND_SCALE_FACTOR = 5;
+Enemy.RELOAD_DELAY = 700;
+Enemy.MAX_PERSONAL_BULLETS = 1;

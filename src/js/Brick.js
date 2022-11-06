@@ -1,50 +1,37 @@
 class Brick {
-  constructor({ coords, baseWidth, baseHeight, levelMapPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, sprite, layer }) {
-    this._width = baseWidth;
-    this._height = baseHeight;
+  constructor({ coords, stepSize, safeAreaPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer }) {
+    this._stepSize = stepSize;
+    this._safeAreaPosition = safeAreaPosition;
     this._coords = {
       x: coords.x,
       y: coords.y,
     };
     this._position = {
-      x: this._coords.x * this._width + levelMapPosition.x,
-      y: this._coords.y * this._height + levelMapPosition.y,
+      x: 0,
+      y: 0,
     };
+    this.setSize();
+
     this._collideWithBullet = collideWithBullet;
     this._collideWithTank = collideWithTank;
     this._breakByBullet = breakByBullet;
     this._breakBySuperBullet = breakBySuperBullet;
     this._color = color;
-    this._sprite = new Image();
-    this._sprite.src = sprite;
     this._layer = layer;
-
-    this._loaded = false;
-
-    this._sprite.addEventListener('load', () => {
-      this._loaded = true;
-    })
   }
 
-  setSize({ baseWidth, baseHeight, levelMapPosition }) {
-    this._width = baseWidth;
-    this._height = baseHeight;
-    this._position.x = this._coords.x * this._width + levelMapPosition.x;
-    this._position.y = this._coords.y * this._height + levelMapPosition.y;
+  setSize() {
+    this._position.x = this._safeAreaPosition.x + this._coords.x * this._stepSize.width;
+    this._position.y = this._safeAreaPosition.y + this._coords.y * this._stepSize.height;
   }
 
   render(ctx) {
-    if (!this._loaded) return;
-		//ctx.fillStyle = this._color;
-		//ctx.fillRect(this._position.x, this._position.y, this._width, this._height);
-    ctx.drawImage(this._sprite, this._position.x, this._position.y, this._width, this._height);
+    ctx.fillStyle = this._color;
+    ctx.fillRect(this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
   }
 
   getSize() {
-    return {
-      width: this._width,
-      height: this._height,
-    }
+    return this._stepSize;
   }
 
   getPosition() {
@@ -72,7 +59,7 @@ class Brick {
   }
 }
 
-Brick.types = {
+Brick.TYPES = {
   1: {
     collideWithBullet: true,
     collideWithTank: true,
@@ -80,7 +67,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#9C4A00',
     layer: 'bottom',
-    sprite: 'images/brick-01.jpg',
   },
   2: {
     collideWithBullet: true,
@@ -89,7 +75,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#9C4A00',
     layer: 'bottom',
-    sprite: 'images/brick-02.jpg',
   },
   3: {
     collideWithBullet: true,
@@ -98,7 +83,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#ffffff',
     layer: 'bottom',
-    sprite: 'images/concrete-01.jpg',
   },
   4: {
     collideWithBullet: true,
@@ -107,7 +91,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#ffffff',
     layer: 'bottom',
-    sprite: 'images/concrete-02.jpg',
   },
   5: {
     collideWithBullet: true,
@@ -116,7 +99,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#ffffff',
     layer: 'bottom',
-    sprite: 'images/concrete-03.jpg',
   },
   6: {
     collideWithBullet: true,
@@ -125,7 +107,6 @@ Brick.types = {
     breakBySuperBullet: true,
     color: '#ffffff',
     layer: 'bottom',
-    sprite: 'images/concrete-04.jpg',
   },
   7: {
     collideWithBullet: false,
