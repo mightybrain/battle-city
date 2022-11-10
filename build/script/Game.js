@@ -17,10 +17,13 @@ class Game {
 		};
 		this._setSize();
 
+		this._assets = new Assets();
+
 		this._sceneManager = new SceneManager({
 			canvasSize: this._canvasSize,
 			stepSize: this._stepSize,
 			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
 		});
 
 		this._renderer = new Renderer({
@@ -35,7 +38,8 @@ class Game {
 		this._startGame();
 	}
 
-	_startGame() {
+	async _startGame() {
+		await this._assets.load();
 		this._sceneManager.showMainScene();
 
 		requestAnimationFrame(timestamp => {

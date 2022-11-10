@@ -1,13 +1,13 @@
 class EnemiesQueue {
-  constructor () {
-    this._enemiesInQueue = 20;
-  }
+	constructor () {
+		this._enemiesInQueue = 20;
+	}
 
-  getEnemiesInQueue() {
-    return this._enemiesInQueue;
-  }
+	getEnemiesInQueue() {
+		return this._enemiesInQueue;
+	}
 
-  decreaseEnemiesInQueue() {
-    this._enemiesInQueue -= 1;
-  }
+	decreaseEnemiesInQueue() {
+		this._enemiesInQueue -= 1;
+	}
 }
