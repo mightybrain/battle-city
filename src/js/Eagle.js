@@ -20,6 +20,8 @@ class Eagle {
 	}
 
 	render(ctx) {
+		if (this._destroyed) return;
+		
 		ctx.drawImage(this._sprite, 0, 0, this._sprite.width, this._sprite.height, this._position.x, this._position.y, this._size.width, this._size.height);
 	}
 

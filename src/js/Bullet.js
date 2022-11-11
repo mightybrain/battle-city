@@ -114,6 +114,8 @@ class Bullet {
 	}
 
 	_updatePositionWithEagleCollision(position) {
+		if (this._eagle.getDestroyed()) return position;
+		
 		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
 		
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();

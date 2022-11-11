@@ -102,6 +102,6 @@ addEventListener('DOMContentLoaded', () => {
 })
 
 Game.MAX_STEPS = {
-	x: 56,
+	x: 60,
 	y: 52,
 }

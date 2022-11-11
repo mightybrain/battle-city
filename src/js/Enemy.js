@@ -50,8 +50,8 @@ class Enemy {
 		this._size.width = this._stepSize.width * Enemy.SIZE_SCALE_FACTOR;
 		this._size.height = this._stepSize.height * Enemy.SIZE_SCALE_FACTOR;
 
-		this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
-		this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
+		this._velocity.x = this._direction.x * Enemy.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
+		this._velocity.y = this._direction.y * Enemy.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 
 		if (initial) {
 			this._position.x = this._safeAreaPosition.x + this._stepSize.width * this._initialCoords.x;
@@ -128,6 +128,8 @@ class Enemy {
 	}
 
 	_updatePositionWithEagleCollision(position) {
+		if (this._eagle.getDestroyed()) return position;
+
 		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
 		
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
@@ -340,8 +342,8 @@ class Enemy {
 				break;
 		}
 
-		this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
-		this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
+		this._velocity.x = this._direction.x * Enemy.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
+		this._velocity.y = this._direction.y * Enemy.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 	}
 }
 

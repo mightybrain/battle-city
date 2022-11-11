@@ -20,15 +20,28 @@ class CoreScene {
 			safeAreaPosition: this._safeAreaPosition,
 			assets: this._assets,
 		})
-		this._eagleDestroyedTime = 0;
 
-		this._enemiesQueue = new EnemiesQueue();
+		this._levelIndicator = new LevelIndicator({
+			state: this._state,
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+		});
+
+		this._playersIndicator = new PlayersIndicator({
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+		});
+		
+		this._enemiesQueue = new EnemiesQueue({
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+		});
 		this._enemiesStore = new EnemiesStore();
 		this._bulletsStore = new BulletsStore();
 		this._playersStore = new PlayersStore();
-
-		this._prevEnemiesSpawnTime = 0;
-		this._nextEnemiesSpawnTime = 0;
 
 		this._player = new Player({
 			stepSize: this._stepSize,
@@ -39,14 +52,17 @@ class CoreScene {
 			playersStore: this._playersStore,
 			eagle: this._eagle,
 			assets: this._assets,
+			sign: 'A',
 		});
 
 		this._playersStore.addPlayer(this._player);
+
+		this._prevEnemiesSpawnTime = 0;
+		this._nextEnemiesSpawnTime = 0;
+		this._eagleDestroyedTime = 0;
 	}
 
 	update(time) {
-		//if (this._player.getDestroyed()) this._player.respawn();
-		//if (!this._player.getDestroyed()) this._player.update(time);
 		this._playersStore.update(time);
 		this._enemiesStore.update(time);
 		this._bulletsStore.update(time);
@@ -91,6 +107,8 @@ class CoreScene {
 
 	setSize() {
 		this._level.setSize();
+		this._enemiesQueue.setSize();
+		this._levelIndicator.setSize();
 		this._eagle.setSize();
 		this._player.setSize();
 		this._bulletsStore.setSize();
@@ -102,11 +120,13 @@ class CoreScene {
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		this._level.render(ctx, 'bottom');
-		if (!this._player.getDestroyed()) this._player.render(ctx);
+		this._player.render(ctx);
 		this._bulletsStore.render(ctx);
 		this._enemiesStore.render(ctx);
 		this._level.render(ctx, 'top');
-		if (!this._eagle.getDestroyed()) this._eagle.render(ctx);
+		this._eagle.render(ctx);
+		this._enemiesQueue.render(ctx);
+		this._levelIndicator.render(ctx);
 	}
 
 	handleKeyDown(code) {

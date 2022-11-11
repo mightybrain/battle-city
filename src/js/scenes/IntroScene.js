@@ -9,7 +9,7 @@ class IntroScene {
 		this._fontSize = 0;
 		this.setSize();
 
-		this._stageLabel = `STAGE ${this._state.getLevelIndex()}`;
+		this._levelIndex = `STAGE ${this._state.getLevelIndex()}`;
 	}
 
 	setSize() {
@@ -25,13 +25,15 @@ class IntroScene {
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.font = `${this._fontSize}px PressStart2P`;
-		const { textWidth, textHeight } = calcTextMetrics(ctx, this._stageLabel);
+		const { textWidth, textHeight } = calcTextMetrics(ctx, this._levelIndex);
 
-		const stageLabelPositionX = (this._canvasSize.width - textWidth) / 2;
-		const stageLabelPositionY = (this._canvasSize.height - textHeight) / 2;
+		const levelIndexPosition = {
+			x: (this._canvasSize.width - textWidth) / 2,
+			y: (this._canvasSize.height - textHeight) / 2,
+		}
 		
 		ctx.fillStyle = '#FFFFFF';
-		ctx.fillText(this._stageLabel, stageLabelPositionX, stageLabelPositionY);
+		ctx.fillText(this._levelIndex, levelIndexPosition.x, levelIndexPosition.y);
 	}
 
 	handleKeyDown(code) {

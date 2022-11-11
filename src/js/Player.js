@@ -1,5 +1,5 @@
 class Player {
-	constructor({ stepSize, safeAreaPosition, level, bulletsStore, enemiesStore, eagle, playersStore, assets }) {
+	constructor({ stepSize, safeAreaPosition, level, bulletsStore, enemiesStore, eagle, playersStore, assets, sign }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -13,6 +13,7 @@ class Player {
 		this._enemiesStore = enemiesStore;
 		this._playersStore = playersStore;
 		this._eagle = eagle;
+		this._sign = sign;
 
 		this._size = {
 			width: 0,
@@ -77,6 +78,8 @@ class Player {
 	}
 
 	render(ctx) {
+		if (this._destroyed) return;
+
 		let spriteOffset = 0;
 		if (this._direction.x > 0) spriteOffset = this._sprite.width * .75;
 		else if (this._direction.x < 0) spriteOffset = this._sprite.width * .5;
@@ -142,6 +145,8 @@ class Player {
 	}
 
 	_updatePositionWithEagleCollision(position) {
+		if (this._eagle.getDestroyed()) return position;
+
 		const playerBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
 		
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
