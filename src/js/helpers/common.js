@@ -35,6 +35,13 @@ function findClosestElem(elems, position, axis) {
 	}, null)
 }
 
+function roundPositionByObject(position, size, velocity, objectBoundaryBox) {
+	if (velocity.x > 0) return { ...position, x: objectBoundaryBox.x1 - size.width };
+	else if (velocity.x < 0) return { ...position, x: objectBoundaryBox.x2 };
+	else if (velocity.y > 0) return { ...position, y: objectBoundaryBox.y1 - size.height };
+	else if (velocity.y < 0) return { ...position, y: objectBoundaryBox.y2 };
+}
+
 function getBoundaryBoxOfMovingElem(velocity, prevPosition, nextPosition, size) {
 	if (velocity.x > 0) {
 		return {

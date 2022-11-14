@@ -21,6 +21,10 @@ class State {
 		this._levelIndex = 1;
 	}
 
+	getPlayerLives(sign) {
+		return sign === 'A' ? this._playerALives : this._playerBLives;
+	}
+
 	getPlayerData(sign) {
 		switch(sign) {
 			case 'A':
@@ -47,8 +51,9 @@ class State {
 
 	}
 
-	decreasePlayerLives(sign) {
-
+	setPlayerLives(sign, lives) {
+		if (sign === 'A') this._playerALives = lives;
+		else this._playerBLives = lives;
 	}
 
 	increasePlayerLives(sign) {

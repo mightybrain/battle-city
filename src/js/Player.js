@@ -1,5 +1,5 @@
 class Player {
-	constructor({ stepSize, safeAreaPosition, level, bulletsStore, enemiesStore, eagle, playersStore, assets, sign }) {
+	constructor({ stepSize, safeAreaPosition, level, bulletsStore, enemiesStore, eagle, playersStore, assets, sign, state }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -7,6 +7,7 @@ class Player {
 		this._prevSafeAreaPositionX = this._safeAreaPosition.x;
 		this._prevSafeAreaPositionY = this._safeAreaPosition.y;
 
+		this._state = state;
 		this._assets = assets;
 		this._level = level;
 		this._bulletsStore = bulletsStore;
@@ -14,6 +15,7 @@ class Player {
 		this._playersStore = playersStore;
 		this._eagle = eagle;
 		this._sign = sign;
+		this._lives = this._state.getPlayerLives(this._sign)
 
 		this._size = {
 			width: 0,
@@ -42,14 +44,13 @@ class Player {
 		this._destroyed = false;
 	}
 
-	respawn() {
+	_respawn() {
 		this._direction.x = 0;
 		this._direction.y = -1;
 		this._velocity.x = 0;
 		this._velocity.y = 0;
 		this._position.x = this._safeAreaPosition.x + this._stepSize.width * Player.INITIAL_COORDS.x;
 		this._position.y = this._safeAreaPosition.y + this._stepSize.height * Player.INITIAL_COORDS.y;
-		this._destroyed = false;
 	}
 
 	setSize({ initial = false } = {}) {
@@ -306,12 +307,22 @@ class Player {
 		}
 	}
 
+	getLives() {
+		return this._lives;
+	}
+
 	getDestroyed() {
 		return this._destroyed;
 	}
 
 	destroy() {
-		this._destroyed = true;
+		if (this._lives) {
+			this._lives = Math.max(this._lives - 1, 0);
+			this._state.setPlayerLives(this._lives);
+			this._respawn();
+		} else {
+			this._destroyed = true;
+		}
 	}
 
 	handleKeyDown(code) {

@@ -4,10 +4,8 @@ class PlayersStore {
 	}
 
 	update(time) {
+		this._players.filter(player => !player.getDestroyed());
 		this._players.forEach(player => player.update(time));
-		this._players.forEach(player => {
-			if (player.getDestroyed()) player.respawn();
-		})
 	}
 
 	render(ctx) {

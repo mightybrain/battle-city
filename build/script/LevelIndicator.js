@@ -45,6 +45,6 @@ class LevelIndicator {
 }
 
 LevelIndicator.POSITION_X_SCALE_FACTOR = 54;
-LevelIndicator.POSITION_Y_SCALE_FACTOR = 34;
+LevelIndicator.POSITION_Y_SCALE_FACTOR = 36;
 LevelIndicator.SPRITE_SIZE_SCALE_FACTOR = 4;
 LevelIndicator.FONT_SIZE_SCALE_FACTOR = 2;

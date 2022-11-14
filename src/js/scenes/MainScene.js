@@ -8,6 +8,16 @@ class MainScene {
 
 		this._fontSize = 0;
 
+		this._menu = [
+			{
+				label: '1 PLAYER',
+				selected: true,
+			},
+			{
+				label: '2 PLAYERS',
+				selected: false,
+			},
+		]
 		this._titleSprite = this._assets.get('images/title.png');
 		this._selectorSprite = this._assets.get('images/player-select.png');
 		this._titleSpriteSize = {
@@ -23,17 +33,6 @@ class MainScene {
 			height: 0,
 		}
 		this._spaceBetweenSelectorAndLabel = 0;
-
-		this._menu = [
-			{
-				label: '1 PLAYER',
-				selected: true,
-			},
-			{
-				label: '2 PLAYERS',
-				selected: false,
-			},
-		]
 		this._menuItemHeight = 0;
 		this._menuPosition = {
 			x: 0,

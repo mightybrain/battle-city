@@ -7,6 +7,20 @@ class State {
 		
 		this._playerBPoints = 0;
 		this._playerBLives = 2;
+
+		this._playerAScore = {
+			1: 0,
+			2: 0,
+			3: 0,
+			4: 0,
+		};
+
+		this._playerBScore = {
+			1: 0,
+			2: 0,
+			3: 0,
+			4: 0,
+		};
 	}
 	
 	getLevelIndex() {
@@ -19,6 +33,10 @@ class State {
 
 	resetLevelIndex() {
 		this._levelIndex = 1;
+	}
+
+	getPlayerLives(sign) {
+		return sign === 'A' ? this._playerALives : this._playerBLives;
 	}
 
 	getPlayerData(sign) {
@@ -47,8 +65,9 @@ class State {
 
 	}
 
-	decreasePlayerLives(sign) {
-
+	setPlayerLives(sign, lives) {
+		if (sign === 'A') this._playerALives = lives;
+		else this._playerBLives = lives;
 	}
 
 	increasePlayerLives(sign) {

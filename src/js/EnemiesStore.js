@@ -5,6 +5,9 @@ class EnemiesStore {
 
 	update(time) {
 		this._enemies.forEach(enemy => enemy.update(time));
+	}
+
+	clearDestroyedEnemies() {
 		this._enemies = this._enemies.filter(enemy => !enemy.getDestroyed());
 	}
 

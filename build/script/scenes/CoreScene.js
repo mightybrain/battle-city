@@ -27,12 +27,6 @@ class CoreScene {
 			safeAreaPosition: this._safeAreaPosition,
 			assets: this._assets,
 		});
-
-		this._playersIndicator = new PlayersIndicator({
-			stepSize: this._stepSize,
-			safeAreaPosition: this._safeAreaPosition,
-			assets: this._assets,
-		});
 		
 		this._enemiesQueue = new EnemiesQueue({
 			stepSize: this._stepSize,
@@ -43,6 +37,13 @@ class CoreScene {
 		this._bulletsStore = new BulletsStore();
 		this._playersStore = new PlayersStore();
 
+		this._playersIndicator = new PlayersIndicator({
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+			playersStore: this._playersStore,
+		});
+
 		this._player = new Player({
 			stepSize: this._stepSize,
 			safeAreaPosition: this._safeAreaPosition,
@@ -52,6 +53,7 @@ class CoreScene {
 			playersStore: this._playersStore,
 			eagle: this._eagle,
 			assets: this._assets,
+			state: this._state,
 			sign: 'A',
 		});
 
@@ -109,6 +111,7 @@ class CoreScene {
 		this._level.setSize();
 		this._enemiesQueue.setSize();
 		this._levelIndicator.setSize();
+		this._playersIndicator.setSize();
 		this._eagle.setSize();
 		this._player.setSize();
 		this._bulletsStore.setSize();
@@ -127,6 +130,7 @@ class CoreScene {
 		this._eagle.render(ctx);
 		this._enemiesQueue.render(ctx);
 		this._levelIndicator.render(ctx);
+		this._playersIndicator.render(ctx);
 	}
 
 	handleKeyDown(code) {
