@@ -35,13 +35,15 @@ class CoreScene {
 		});
 		this._enemiesStore = new EnemiesStore();
 		this._bulletsStore = new BulletsStore();
-		this._playersStore = new PlayersStore();
+		this._playersStore = new PlayersStore({
+			state: this._state,
+		});
 
 		this._playersIndicator = new PlayersIndicator({
 			stepSize: this._stepSize,
 			safeAreaPosition: this._safeAreaPosition,
 			assets: this._assets,
-			playersStore: this._playersStore,
+			state: this._state,
 		});
 
 		this._player = new Player({
@@ -54,7 +56,15 @@ class CoreScene {
 			eagle: this._eagle,
 			assets: this._assets,
 			state: this._state,
-			sign: 'A',
+			sign: 1,
+			sprite: this._assets.get('images/player-01.png'),
+			initialDirection: { x: 0, y: -1 },
+			initialCoords: { x: 18, y: 48 },
+			speed: { 
+				x: this._stepSize.width * Player.SPEED_PER_SECOND_SCALE_FACTOR,
+				y: this._stepSize.height * Player.SPEED_PER_SECOND_SCALE_FACTOR,
+			},
+			armor: 0,
 		});
 
 		this._playersStore.addPlayer(this._player);
@@ -87,9 +97,12 @@ class CoreScene {
 
 	_spawnEnemies() {
 		let spawnCounter = this._enemiesQueue.getEnemiesInQueue();
-		if (spawnCounter) spawnCounter = Math.min(CoreScene.MAX_ENEMIES_COUNTER - this._enemiesStore.getEnemies().length, CoreScene.INITIAL_COORDS.length);
+		if (spawnCounter) spawnCounter = Math.min(CoreScene.MAX_ENEMIES_COUNTER - this._enemiesStore.getEnemies().length, CoreScene.ENEMIES_INITIAL_COORDS.length);
 
-		CoreScene.INITIAL_COORDS.slice(0, spawnCounter).forEach(coords => {
+		CoreScene.ENEMIES_INITIAL_COORDS.slice(0, spawnCounter).forEach(coords => {
+			const typeIndex = getRandomFromRange(0, Enemy.TYPES.length - 1);
+			const type = Enemy.TYPES[typeIndex];
+
 			const enemy = new Enemy({
 				stepSize: this._stepSize,
 				safeAreaPosition: this._safeAreaPosition,
@@ -99,8 +112,16 @@ class CoreScene {
 				playersStore: this._playersStore,
 				enemiesStore: this._enemiesStore,
 				initialCoords: coords,
+				initialDirection: { x: 0, y: 1 },
 				eagle: this._eagle,
 				assets: this._assets,
+				sprite: this._assets.get(type.sprite),
+				speed: { 
+					x: this._stepSize.width * type.speedPerSecondScaleFactor,
+					y: this._stepSize.height * type.speedPerSecondScaleFactor,
+				},
+				armor: type.armor,
+				price: type.price,
 			});
 			this._enemiesStore.addEnemy(enemy);
 			this._enemiesQueue.decreaseEnemiesInQueue();
@@ -113,7 +134,7 @@ class CoreScene {
 		this._levelIndicator.setSize();
 		this._playersIndicator.setSize();
 		this._eagle.setSize();
-		this._player.setSize();
+		this._playersStore.setSize();
 		this._bulletsStore.setSize();
 		this._enemiesStore.setSize();
 	}
@@ -123,7 +144,7 @@ class CoreScene {
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		this._level.render(ctx, 'bottom');
-		this._player.render(ctx);
+		this._playersStore.render(ctx);
 		this._bulletsStore.render(ctx);
 		this._enemiesStore.render(ctx);
 		this._level.render(ctx, 'top');
@@ -143,5 +164,5 @@ class CoreScene {
 }
 
 CoreScene.MAX_ENEMIES_COUNTER = 7;
-CoreScene.INITIAL_COORDS = [{ x: 0, y: 0 }, { x: 24, y: 0 }, { x: 48, y: 0 }];
+CoreScene.ENEMIES_INITIAL_COORDS = [{ x: 0, y: 0 }, { x: 24, y: 0 }, { x: 48, y: 0 }];
 CoreScene.SCENE_END_DELAY = 5000;

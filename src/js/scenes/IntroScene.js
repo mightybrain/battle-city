@@ -5,7 +5,7 @@ class IntroScene {
 		this._stepSize = stepSize;
 		this._sceneManager = sceneManager;
 
-		this._levelLabel = `STAGE ${this._state.getLevelIndex()}`;
+		this._label = `STAGE ${this._state.getLevelIndex()}`;
 
 		this._fontSize = 0;
 		this.setSize();
@@ -24,15 +24,15 @@ class IntroScene {
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.font = `${this._fontSize}px PressStart2P`;
-		const { textWidth, textHeight } = calcTextMetrics(ctx, this._levelLabel);
+		const { textWidth, textHeight } = calcTextMetrics(ctx, this._label);
 
-		const levelLabelPosition = {
+		const labelPosition = {
 			x: (this._canvasSize.width - textWidth) / 2,
 			y: (this._canvasSize.height - textHeight) / 2,
 		}
 		
 		ctx.fillStyle = '#FFFFFF';
-		ctx.fillText(this._levelLabel, levelLabelPosition.x, levelLabelPosition.y);
+		ctx.fillText(this._label, labelPosition.x, labelPosition.y);
 	}
 
 	handleKeyDown(code) {

@@ -1,40 +1,22 @@
 class MainScene {
-	constructor({ state, canvasSize, stepSize, sceneManager, assets }) {
-		this._state = state;
+	constructor({ canvasSize, stepSize, sceneManager, assets }) {
 		this._canvasSize = canvasSize;
 		this._stepSize = stepSize;
 		this._sceneManager = sceneManager;
 		this._assets = assets;
 
-		this._fontSize = 0;
+		this._menu = new Menu({
+			canvasSize: this._canvasSize,
+			stepSize: this._stepSize,
+			assets: this._assets,
+		});
 
-		this._menu = [
-			{
-				label: '1 PLAYER',
-				selected: true,
-			},
-			{
-				label: '2 PLAYERS',
-				selected: false,
-			},
-		]
-		this._titleSprite = this._assets.get('images/title.png');
-		this._selectorSprite = this._assets.get('images/player-select.png');
-		this._titleSpriteSize = {
+		this._sprite = this._assets.get('images/title.png');
+		this._spriteSize = {
 			width: 0,
 			height: 0,
 		}
-		this._titleSpritePosition = {
-			x: 0,
-			y: 0,
-		}
-		this._selectorSpriteSize = {
-			width: 0,
-			height: 0,
-		}
-		this._spaceBetweenSelectorAndLabel = 0;
-		this._menuItemHeight = 0;
-		this._menuPosition = {
+		this._spritePosition = {
 			x: 0,
 			y: 0,
 		}
@@ -42,20 +24,12 @@ class MainScene {
 	}
 
 	setSize() {
-		this._fontSize = this._stepSize.height * MainScene.FONT_SIZE_SCALE_FACTOR;
-
-		this._titleSpriteSize.width = this._stepSize.width * MainScene.TITLE_SPRITE_WIDTH_SCALE_FACTOR;
-		this._titleSpriteSize.height = this._stepSize.height * MainScene.TITLE_SPRITE_HEIGHT_SCALE_FACTOR;
-		this._titleSpritePosition.y = this._stepSize.height * MainScene.TITLE_SPRITE_POSITION_Y_SCALE_FACTOR;
-		this._titleSpritePosition.x = (this._canvasSize.width - this._titleSpriteSize.width) / 2;
-
-		this._selectorSpriteSize.width = this._stepSize.width * MainScene.SELECTOR_WIDTH_SCALE_FACTOR;
-		this._selectorSpriteSize.height = this._stepSize.height * MainScene.MENU_ITEM_HEIGHT_SCALE_FACTOR;
-
-		this._spaceBetweenSelectorAndLabel = this._stepSize.width * MainScene.SPACE_BETWEEN_SELECTOR_AND_LABEL_SCALE_FACTOR;
+		this._spriteSize.width = this._stepSize.width * MainScene.SPRITE_WIDTH_SCALE_FACTOR;
+		this._spriteSize.height = this._stepSize.height * MainScene.SPRITE_HEIGHT_SCALE_FACTOR;
+		this._spritePosition.y = this._stepSize.height * MainScene.SPRITE_POSITION_Y_SCALE_FACTOR;
+		this._spritePosition.x = (this._canvasSize.width - this._spriteSize.width) / 2;
 		
-		this._menuItemHeight = this._stepSize.height * MainScene.MENU_ITEM_HEIGHT_SCALE_FACTOR;
-		this._menuPosition.y = this._stepSize.height * MainScene.MENU_POSITION_Y_SCALE_FACTOR
+		this._menu.setSize();
 	}
 
 	update(time) {
@@ -66,42 +40,13 @@ class MainScene {
 		ctx.fillStyle = '#000000';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
-		ctx.drawImage(this._titleSprite, this._titleSpritePosition.x, this._titleSpritePosition.y, this._titleSpriteSize.width, this._titleSpriteSize.height);
+		ctx.drawImage(this._sprite, this._spritePosition.x, this._spritePosition.y, this._spriteSize.width, this._spriteSize.height);
 
-		ctx.font = `${this._fontSize}px PressStart2P`;
-		const menuWithSizes = this._menu.map(item => {
-			return {
-				...item,
-				...calcTextMetrics(ctx, item.label),
-			}
-		})
-		const maxMenuLabelSize = menuWithSizes.reduce((total, item) => item.textWidth > total ? item.textWidth : total, 0);
-		const menuWidth = this._selectorSpriteSize.width + this._spaceBetweenSelectorAndLabel + maxMenuLabelSize;
-		const menuPositionX = (this._canvasSize.width - menuWidth) / 2;
-
-		menuWithSizes.forEach((item, index) => {
-			const itemPositionY = this._menuPosition.y + (index * this._menuItemHeight)
-
-			if (item.selected) ctx.drawImage(this._selectorSprite, menuPositionX, itemPositionY, this._selectorSpriteSize.width, this._selectorSpriteSize.height);
-
-			const itemLabelPositionX = menuPositionX + this._selectorSpriteSize.width + this._spaceBetweenSelectorAndLabel;
-			const itemLabelPositionY = itemPositionY + item.textHeight + (this._menuItemHeight - item.textHeight) / 2;
-			ctx.fillStyle = '#FFFFFF';
-			ctx.fillText(item.label, itemLabelPositionX, itemLabelPositionY);
-		})
-	}
-
-	_changeSelectedMenuItem(code) {
-		const selectedIndex = this._menu.findIndex(item => item.selected);
-		const newSelectedIndex = code === 'ArrowDown' ? selectedIndex + 1 : selectedIndex - 1;
-		if (this._menu[newSelectedIndex]) {
-			this._menu[selectedIndex].selected = false;
-			this._menu[newSelectedIndex].selected = true;
-		}
+		this._menu.render(ctx);
 	}
 
 	handleKeyDown(code) {
-		if (code === 'ArrowDown' || code === 'ArrowUp') this._changeSelectedMenuItem(code);
+		if (code === 'ArrowDown' || code === 'ArrowUp') this._menu.changeActiveMenuItem(code);
 	}
 
 	handleKeyUp(code) {
@@ -109,11 +54,6 @@ class MainScene {
 	}
 }
 
-MainScene.TITLE_SPRITE_WIDTH_SCALE_FACTOR = 28;
-MainScene.TITLE_SPRITE_HEIGHT_SCALE_FACTOR = 16;
-MainScene.TITLE_SPRITE_POSITION_Y_SCALE_FACTOR = 10;
-MainScene.MENU_POSITION_Y_SCALE_FACTOR = 30;
-MainScene.MENU_ITEM_HEIGHT_SCALE_FACTOR = 4;
-MainScene.FONT_SIZE_SCALE_FACTOR = 2;
-MainScene.SELECTOR_WIDTH_SCALE_FACTOR = 4;
-MainScene.SPACE_BETWEEN_SELECTOR_AND_LABEL_SCALE_FACTOR = 3;
+MainScene.SPRITE_WIDTH_SCALE_FACTOR = 28;
+MainScene.SPRITE_HEIGHT_SCALE_FACTOR = 16;
+MainScene.SPRITE_POSITION_Y_SCALE_FACTOR = 10;

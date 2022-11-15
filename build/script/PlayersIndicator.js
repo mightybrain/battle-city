@@ -1,9 +1,11 @@
 class PlayersIndicator {
-	constructor ({ stepSize, safeAreaPosition, assets, playersStore }) {
+	constructor ({ stepSize, safeAreaPosition, assets, state }) {
 		this._safeAreaPosition = safeAreaPosition;
 		this._stepSize = stepSize;
 		this._assets = assets;
-    this._playersStore = playersStore;
+    this._state = state;
+
+    this._playersLives = this._state.getPlayersLives();
 
     this._sprite = this._assets.get('images/player-indicator.png');
 
@@ -28,14 +30,14 @@ class PlayersIndicator {
     this._spriteSize.width = this._stepSize.width * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
     this._spriteSize.height = this._stepSize.height * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
     this._playerIndicatorHeight = this._stepSize.height * PlayersIndicator.PLAYER_INDICATOR_HEIGHT_SCALE_FACTOR;
-    this._spaceBetweenPlayers = this._stepSize.height * PlayersIndicator.SPACE_BETWEEN_PLAERS_SCALE_FACTOR;
+    this._spaceBetweenPlayers = this._stepSize.height * PlayersIndicator.SPACE_BETWEEN_PLAYERS_SCALE_FACTOR;
   }
 
   render(ctx) {
-    const players = this._playersStore.getPlayers();
+    const playersKeys = Object.keys(this._playersLives);
 
-    players.forEach((player, index) => {
-      const playerLabel = `${index + 1}P`;
+    playersKeys.forEach((key, index) => {
+      const playerLabel = `${key}P`;
       const playerLabelPosition = {
         x: this._position.x,
         y: this._position.y + index * (this._playerIndicatorHeight + this._spaceBetweenPlayers) + this._fontSize,
@@ -46,7 +48,6 @@ class PlayersIndicator {
         y: this._position.y + index * (this._playerIndicatorHeight + this._spaceBetweenPlayers) + this._fontSize,
       }
 
-      const playerLivesCounter = player.getLives();
       const playerLivesCounterPosition = {
         x: this._position.x + this._spriteSize.width,
         y: this._position.y + index * (this._playerIndicatorHeight + this._spaceBetweenPlayers) + this._fontSize * 2,
@@ -55,11 +56,11 @@ class PlayersIndicator {
       ctx.font = `${this._fontSize}px PressStart2P`;
       ctx.fillStyle = '#000000';
       ctx.fillText(playerLabel, playerLabelPosition.x, playerLabelPosition.y);
-      ctx.fillText(playerLivesCounter, playerLivesCounterPosition.x, playerLivesCounterPosition.y);
+
+      ctx.fillText(this._playersLives[key], playerLivesCounterPosition.x, playerLivesCounterPosition.y);
 
       ctx.drawImage(this._sprite, 0, 0, this._sprite.width, this._sprite.height, playerSpritePosition.x, playerSpritePosition.y, this._spriteSize.width, this._spriteSize.height);
     })
-    
   }
 }
 
@@ -68,4 +69,4 @@ PlayersIndicator.POSITION_X_SCALE_FACTOR = 54;
 PlayersIndicator.POSITION_Y_SCALE_FACTOR = 24;
 PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR = 2;
 PlayersIndicator.FONT_SIZE_SCALE_FACTOR = 2;
-PlayersIndicator.SPACE_BETWEEN_PLAERS_SCALE_FACTOR = 2;
+PlayersIndicator.SPACE_BETWEEN_PLAYERS_SCALE_FACTOR = 2;

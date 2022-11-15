@@ -1,19 +1,25 @@
 class Tank {
-	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, assets }) {
+	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, assets, initialDirection, sprite, armor, speed }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
 		this._safeAreaPosition = safeAreaPosition;
 		this._prevSafeAreaPositionX = this._safeAreaPosition.x;
 		this._prevSafeAreaPositionY = this._safeAreaPosition.y;
-		this._initialCoords = initialCoords;
-
+		
 		this._playersStore = playersStore;
 		this._enemiesStore = enemiesStore;
 		this._bulletsStore = bulletsStore;
 		this._level = level;
 		this._eagle = eagle;
 		this._assets = assets;
+
+		this._initialCoords = initialCoords;
+		this._initialDirection = initialDirection;
+		this._direction = {
+			x: initialDirection.x,
+			y: initialDirection.y,
+		};
 
 		this._size = {
 			width: 0,
@@ -23,30 +29,24 @@ class Tank {
 			x: 0,
 			y: 0,
 		};
-		this._direction = {
-			x: 0,
-			y: 1,
-		};
 		this._velocity = {
 			x: 0,
 			y: 0,
 		};
 		this.setSize({ initial: true });
 
+		this._armor = armor;
+		this._speed = speed;
 		this._reload = false;
 		this._personalBullets = [];
-
-		this._sprite = this._assets.get('images/enemy-01.png');
-
 		this._destroyed = false;
+		
+		this._sprite = sprite;
 	}
 
 	setSize({ initial = false } = {}) {
 		this._size.width = this._stepSize.width * Tank.SIZE_SCALE_FACTOR;
 		this._size.height = this._stepSize.height * Tank.SIZE_SCALE_FACTOR;
-
-		this._velocity.x = this._direction.x * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
-		this._velocity.y = this._direction.y * Player.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
 
 		if (initial) {
 			this._position.x = this._safeAreaPosition.x + this._stepSize.width * this._initialCoords.x;
@@ -58,6 +58,12 @@ class Tank {
 			}
 			this._position.x = this._safeAreaPosition.x + this._stepSize.width * coords.x;
 			this._position.y = this._safeAreaPosition.y + this._stepSize.height * coords.y;
+
+			this._speed.x = this._speed.x / this._prevStepSizeWidth * this._stepSize.width;
+			this._speed.y = this._speed.y / this._prevStepSizeHeight * this._stepSize.height;
+
+			this._velocity.x = this._velocity.x / this._prevStepSizeWidth * this._stepSize.width;
+			this._velocity.y = this._velocity.y / this._prevStepSizeHeight * this._stepSize.height;
 
 			this._prevStepSizeWidth = this._stepSize.width;
 			this._prevStepSizeHeight = this._stepSize.height;
@@ -76,25 +82,18 @@ class Tank {
 	}
 
 	update({ delta }) {
-		this._personalBullets = this._personalBullets.filter(bullet => !bullet.getDestroyed());
+		if (!this._velocity.x && !this._velocity.y) return;
 
-		let position;
-		if (this._velocity.x) {
-			position = {
-				x: this._position.x + this._velocity.x * delta,
-				y: this._roundPositionByAxis(this._position.y, 'y'),
-			}
-		} else {
-			position = {
-				x: this._roundPositionByAxis(this._position.x, 'x'),
-				y: this._position.y + this._velocity.y * delta,
-			}
+		const [ roundedAxis, floatAxis ] = this._velocity.x ? ['y', 'x'] : ['x', 'y'];
+		let position = {
+			[roundedAxis]: this._roundPositionByAxis(this._position[roundedAxis], roundedAxis),
+			[floatAxis]: this._position[floatAxis] + this._velocity[floatAxis] * delta,
 		}
+
 		position = this._updatePositionWithLevelEdgesCollision(position);
-		position = this._updatePositionWithPlayersCollision(position);
-		position = this._updatePositionWithEnemiesCollision(position);
 		position = this._updatePositionWithLevelBricksCollision(position);
 		position = this._updatePositionWithEagleCollision(position);
+		position = this._updatePositionWithPlayersAndEnemiesCollision(position);
 		this._position = position;
 	}
 
@@ -104,89 +103,35 @@ class Tank {
 			Math.round((positionByAxis - this._safeAreaPosition.y) / this._stepSize.height) * this._stepSize.height + this._safeAreaPosition.y;
 	}
 
+	_updatePositionWithLevelEdgesCollision(position) {
+		const levelBoundaryBox = this._level.getBoundaryBox();
+		const tankBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
+
+		if (tankBoundaryBox.x2 > levelBoundaryBox.x2) return { ...position, x: levelBoundaryBox.x2 - this._size.width };
+		else if (tankBoundaryBox.x1 < levelBoundaryBox.x1) return { ...position, x: levelBoundaryBox.x1 };
+		else if (tankBoundaryBox.y2 > levelBoundaryBox.y2) return { ...position, y: levelBoundaryBox.y2 - this._size.height };
+		else if (tankBoundaryBox.y1 < levelBoundaryBox.y1) return { ...position, y: levelBoundaryBox.y1 };
+		else return position;
+	}
+
 	_updatePositionWithEagleCollision(position) {
 		if (this._eagle.getDestroyed()) return position;
 		
-		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
-		
+		const tankBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
+		const collision = twoAreasCollisioned(tankBoundaryBox, eagleBoundaryBox);
 
-		const collision = twoAreasCollisioned(elemBoundaryBox, eagleBoundaryBox);
-
-		if (!collision) return position;
-		if (this._velocity.x > 0) return { ...position, x: eagleBoundaryBox.x1 - this._size.width };
-		else if (this._velocity.x < 0) return { ...position, x: eagleBoundaryBox.x2 };
-		else if (this._velocity.y > 0) return { ...position, y: eagleBoundaryBox.y1 - this._size.height };
-		else if (this._velocity.y < 0) return { ...position, y: eagleBoundaryBox.y2 };
-	}
-
-	_updatePositionWithPlayersCollision(position) {
-		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
-
-		const players = this._playersStore.getPlayers();
-
-		const playersWithCollision = players.filter(player => {
-			const playerBoundaryBox = player.getRoundedBoundaryBox();
-			return twoAreasCollisioned(elemBoundaryBox, playerBoundaryBox);
-		})
-		
-		if (!playersWithCollision.length) return position;
-
-		const axis = this._velocity.x ? 'x' : 'y';
-		const closestPlayer = findClosestElem(playersWithCollision, position, axis);
-		const closestPlayerBoundaryBox = closestPlayer.getRoundedBoundaryBox();
-
-		if (this._velocity.x > 0) return { ...position, x: closestPlayerBoundaryBox.x1 - this._size.width };
-		else if (this._velocity.x < 0) return { ...position, x: closestPlayerBoundaryBox.x2 };
-		else if (this._velocity.y > 0) return { ...position, y: closestPlayerBoundaryBox.y1 - this._size.height };
-		else if (this._velocity.y < 0) return { ...position, y: closestPlayerBoundaryBox.y2 };
-	}
-
-	_updatePositionWithEnemiesCollision(position) {
-		const enemies = this._enemiesStore.getEnemies();
-		
-		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
-
-		const enemiesWithCollision = enemies.filter(enemy => {
-			if (enemy === this) return false;
-			const enemyBoundaryBox = enemy.getRoundedBoundaryBox();
-			return twoAreasCollisioned(elemBoundaryBox, enemyBoundaryBox);
-		})
-
-		if (!enemiesWithCollision.length) return position;
-
-		const axis = this._velocity.x ? 'x' : 'y';
-		const closestEnemy = findClosestElem(enemiesWithCollision, position, axis);
-		const closestEnemyBoundaryBox = closestEnemy.getRoundedBoundaryBox();
-
-		if (this._velocity.x > 0) return { ...position, x: closestEnemyBoundaryBox.x1 - this._size.width };
-		else if (this._velocity.x < 0) return { ...position, x: closestEnemyBoundaryBox.x2 };
-		else if (this._velocity.y > 0) return { ...position, y: closestEnemyBoundaryBox.y1 - this._size.height };
-		else if (this._velocity.y < 0) return { ...position, y: closestEnemyBoundaryBox.y2 };
-	}
-
-	_updatePositionWithLevelEdgesCollision(position) {
-		const { width: levelWidth, height: levelHeight } = this._level.getMapSize();
-
-		if (position.x + this._size.width > this._safeAreaPosition.x + levelWidth) {
-			return { ...position, x: this._safeAreaPosition.x + levelWidth - this._size.width };
-		} else if (position.x < this._safeAreaPosition.x) {
-			return { ...position, x: this._safeAreaPosition.x };
-		} else if (position.y + this._size.height > this._safeAreaPosition.y + levelHeight) {
-			return { ...position, y: this._safeAreaPosition.y + levelHeight - this._size.height };
-		} else if (position.y < this._safeAreaPosition.y) {
-			return { ...position, y: this._safeAreaPosition.y };
-		} else return position;
+		return collision ? roundPositionByObject(position, this._size, this._velocity, eagleBoundaryBox) : position;
 	}
 
 	_updatePositionWithLevelBricksCollision(position) {
-		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
+		const tankBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
 
 		const coords = {
-			x1: Math.floor((elemBoundaryBox.x1 - this._safeAreaPosition.x) / this._stepSize.width),
-			y1: Math.floor((elemBoundaryBox.y1 - this._safeAreaPosition.y) / this._stepSize.height),
-			x2: Math.ceil((elemBoundaryBox.x2 - this._safeAreaPosition.x) / this._stepSize.width),
-			y2: Math.ceil((elemBoundaryBox.y2 - this._safeAreaPosition.y) / this._stepSize.height),
+			x1: Math.floor((tankBoundaryBox.x1 - this._safeAreaPosition.x) / this._stepSize.width),
+			y1: Math.floor((tankBoundaryBox.y1 - this._safeAreaPosition.y) / this._stepSize.height),
+			x2: Math.ceil((tankBoundaryBox.x2 - this._safeAreaPosition.x) / this._stepSize.width),
+			y2: Math.ceil((tankBoundaryBox.y2 - this._safeAreaPosition.y) / this._stepSize.height),
 		}
 
 		const bricksWithCollision = this._level
@@ -194,7 +139,12 @@ class Tank {
 			.slice(coords.y1, coords.y2)
 			.map(row => row.slice(coords.x1, coords.x2))
 			.flat()
-			.filter(brick => !brick || !brick.getCollideWithTank() ? false : twoAreasCollisioned(elemBoundaryBox, brick.getRoundedBoundaryBox()))
+			.filter(brick => {
+				if (!brick || !brick.getCollideWithTank()) return false;
+
+				const brickBoundaryBox = brick.getRoundedBoundaryBox();
+				return twoAreasCollisioned(tankBoundaryBox, brickBoundaryBox)
+			})
 
 		if (!bricksWithCollision.length) return position;
 
@@ -202,10 +152,29 @@ class Tank {
 		const closestBrick = findClosestElem(bricksWithCollision, position, axis);
 		const closestBrickBoundaryBox = closestBrick.getRoundedBoundaryBox();
 
-		if (this._velocity.x > 0) return { ...position, x: closestBrickBoundaryBox.x1 - this._size.width };
-		else if (this._velocity.x < 0) return { ...position, x: closestBrickBoundaryBox.x2 };
-		else if (this._velocity.y > 0) return { ...position, y: closestBrickBoundaryBox.y1 - this._size.height };
-		else if (this._velocity.y < 0) return { ...position, y: closestBrickBoundaryBox.y2 };
+		return roundPositionByObject(position, this._size, this._velocity, closestBrickBoundaryBox);
+	}
+
+	_updatePositionWithPlayersAndEnemiesCollision(position) {
+		const tankBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
+		
+		const enemies = this._enemiesStore.getEnemies();
+		const players = this._playersStore.getPlayers();
+
+		const itemsWithCollision = [ ...enemies, ...players ].filter(item => {
+			if (item === this) return false;
+
+			const itemBoundaryBox = item.getRoundedBoundaryBox();
+			return twoAreasCollisioned(tankBoundaryBox, itemBoundaryBox);
+		})
+
+		if (!itemsWithCollision.length) return position;
+
+		const axis = this._velocity.x ? 'x' : 'y';
+		const closestItem = findClosestElem(itemsWithCollision, position, axis);
+		const closestItemBoundaryBox = closestItem.getRoundedBoundaryBox();
+
+		return roundPositionByObject(position, this._size, this._velocity, closestItemBoundaryBox);
 	}
 
 	_shoot() {
@@ -233,10 +202,7 @@ class Tank {
 			safeAreaPosition: this._safeAreaPosition,
 			level: this._level,
 			position: bulletPosition,
-			direction: {
-				x: this._direction.x,
-				y: this._direction.y,
-			},
+			direction: { x: this._direction.x, y: this._direction.y },
 			owner: this,
 			playersStore: this._playersStore,
 			enemiesStore: this._enemiesStore,
@@ -244,6 +210,7 @@ class Tank {
 			eagle: this._eagle,
 			assets: this._assets,
 		})
+
 		this._bulletsStore.addBullet(bullet);
 		this._personalBullets.push(bullet);
 
@@ -252,19 +219,38 @@ class Tank {
 		}, Tank.RELOAD_DELAY)
 	}
 
-	getPosition() {
-		return this._position;
-	}
+	_move(direction) {
+		if (this._destroyed) return;
 
-	getSize() {
-		return this._size;
-	}
+		this._direction.x = direction.x;
+		this._direction.y = direction.y;
 
-	getSizeAndPosition() {
-		return {
-			size: this._size,
-			position: this._position,
+		this._velocity = {
+			x: this._direction.x * this._speed.x,
+			y: this._direction.y * this._speed.y,
 		}
+	}
+
+	_stop(direction) {
+		const mustStop = 
+			(direction === Tank.DIRECTIONS.up && this._velocity.y < 0) ||
+			(direction === Tank.DIRECTIONS.down && this._velocity.y > 0) ||
+			(direction === Tank.DIRECTIONS.right && this._velocity.x > 0) ||
+			(direction === Tank.DIRECTIONS.left && this._velocity.x < 0);
+
+		if (mustStop) this._velocity = { x: 0, y: 0 }
+	}
+
+	respawn() {
+		this._position.x = this._safeAreaPosition.x + this._stepSize.width * this._initialCoords.x;
+		this._position.y = this._safeAreaPosition.y + this._stepSize.height * this._initialCoords.y;
+		this._direction.x = this._initialDirection.x;
+		this._direction.y = this._initialDirection.y;
+		this._destroyed = false;
+	}
+
+	clearDestroyedBullets() {
+		this._personalBullets = this._personalBullets.filter(bullet => !bullet.getDestroyed());
 	}
 
 	getRoundedBoundaryBox() {
@@ -280,6 +266,10 @@ class Tank {
 		}
 	}
 
+	getPosition() {
+		return this._position;
+	}
+
 	getBoundaryBox() {
 		return {
 			x1: this._position.x,
@@ -290,7 +280,13 @@ class Tank {
 	}
 
 	destroy() {
-		this._destroyed = true;
+		if (this._armor) {
+			this._armor -= 1;
+		} else {
+			this._destroyed = true;
+			this._enemiesStore.clearDestroyedEnemies();
+			this._playersStore.clearDestroyedPlayers();
+		}
 	}
 
 	getDestroyed() {
@@ -299,6 +295,23 @@ class Tank {
 }
 
 Tank.SIZE_SCALE_FACTOR = 4;
-Tank.SPEED_PER_SECOND_SCALE_FACTOR = 5;
 Tank.RELOAD_DELAY = 700;
 Tank.MAX_PERSONAL_BULLETS = 1;
+Tank.DIRECTIONS = {
+	up: {
+		x: 0,
+		y: -1,
+	},
+	down: {
+		x: 0,
+		y: 1,
+	},
+	right: {
+		x: 1,
+		y: 0,
+	},
+	left: {
+		x: -1,
+		y: 0,
+	},
+}

@@ -5,6 +5,9 @@ class BulletsStore {
 
 	update(time) {
 		this._bullets.forEach(bullet => bullet.update(time));
+	}
+
+	clearDestroyedBullets() {
 		this._bullets = this._bullets.filter(bullet => !bullet.getDestroyed());
 	}
 

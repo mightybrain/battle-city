@@ -1,5 +1,7 @@
 class PlayersStore {
-	constructor() {
+	constructor({ state }) {
+		this._state = state;
+		this._playersLives = this._state.getPlayersLives();
 		this._players = [];
 	}
 
@@ -8,7 +10,19 @@ class PlayersStore {
 	}
 
 	clearDestroyedPlayers() {
-		this._players.filter(player => !player.getDestroyed());
+		this._players = this._players.filter(player => !player.getDestroyed() || this._tryToRespawnPlayer(player));
+	}
+
+	_tryToRespawnPlayer(player) {
+		const sign = player.getSign();
+
+		if (this._playersLives[sign] > 0) {
+			player.respawn();
+			this._state.setPlayerLives(sign, this._playersLives[sign] - 1)
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	render(ctx) {

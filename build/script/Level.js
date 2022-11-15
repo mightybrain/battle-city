@@ -67,6 +67,15 @@ class Level {
 		})
 	}
 
+	getBoundaryBox() {
+		return {
+			x1: this._safeAreaPosition.x,
+			y1: this._safeAreaPosition.y,
+			x2: this._safeAreaPosition.x + this._mapSize.width,
+			y2: this._safeAreaPosition.y + this._mapSize.height,
+		}
+	}
+
 	getMap() {
 		return this._map;
 	}

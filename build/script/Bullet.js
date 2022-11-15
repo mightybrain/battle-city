@@ -355,6 +355,8 @@ class Bullet {
 
 	destroy() {
 		this._destroyed = true;
+		this._owner.clearDestroyedBullets();
+		this._bulletsStore.clearDestroyedBullets();
 	}
 
 	getDestroyed() {
