@@ -50,4 +50,8 @@ Assets.DATA = [
 	'images/enemy-in-queue.png',
 	'images/flag.png',
 	'images/player-indicator.png',
+	'images/enemy-type-01.png',
+	'images/enemy-type-02.png',
+	'images/enemy-type-03.png',
+	'images/enemy-type-04.png',
 ];

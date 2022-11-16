@@ -6,7 +6,7 @@ class Menu {
 
     this._sprite = this._assets.get('images/player-select.png');
 
-		this._menu = [ '1 PLAYER', '2 PLAYERS' ],
+		this._menu = [ '1 PLAYER', /*'2 PLAYERS'*/ ];
     this._activeMenuItem = this._menu[0];
 
     this._fontSize = 0;

@@ -41,6 +41,7 @@ class Game {
 	async _startGame() {
 		await this._assets.load();
 		this._sceneManager.showMainScene();
+		//this._sceneManager.showResultScene();
 
 		requestAnimationFrame(timestamp => {
 			this._gameLoop(timestamp);

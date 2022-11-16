@@ -71,7 +71,7 @@ class CoreScene {
 
 		this._prevEnemiesSpawnTime = 0;
 		this._nextEnemiesSpawnTime = 0;
-		this._eagleDestroyedTime = 0;
+		this._gameOverOrLevelCompleteTime = 0;
 	}
 
 	update(time) {
@@ -80,11 +80,28 @@ class CoreScene {
 		this._bulletsStore.update(time);
 		
 		this._tryToSpawnEnemies(time);
+		this._checkAndHandleGameOver(time);
+		this._checkAndHandleLevelComplete(time);
+	}
 
-		const { timestamp } = time;
+	_checkAndHandleGameOver({ timestamp }) {
 		const eagleDestroyed = this._eagle.getDestroyed();
-		if (eagleDestroyed && !this._eagleDestroyedTime) this._eagleDestroyedTime = timestamp;
-		else if (eagleDestroyed && timestamp > this._eagleDestroyedTime + CoreScene.SCENE_END_DELAY) this._sceneManager.showResultScene();
+		const noPlayersInStore = !this._playersStore.getPlayers().length;
+
+		if (!eagleDestroyed && !noPlayersInStore) return;
+
+		if (!this._gameOverOrLevelCompleteTime) this._gameOverOrLevelCompleteTime = timestamp;
+		else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.SCENE_END_DELAY) this._sceneManager.showResultScene();
+	}
+
+	_checkAndHandleLevelComplete({ timestamp }) {
+		const noEnemiesInQueue = !this._enemiesQueue.getEnemiesInQueue();
+		const noEnemiesInStore = !this._enemiesStore.getEnemies().length;
+
+		if (!noEnemiesInQueue || !noEnemiesInStore) return;
+
+		if (!this._gameOverOrLevelCompleteTime) this._gameOverOrLevelCompleteTime = timestamp;
+		else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.SCENE_END_DELAY) this._sceneManager.showResultScene();
 	}
 
 	_tryToSpawnEnemies({ timestamp }) {
@@ -96,8 +113,8 @@ class CoreScene {
 	}
 
 	_spawnEnemies() {
-		let spawnCounter = this._enemiesQueue.getEnemiesInQueue();
-		if (spawnCounter) spawnCounter = Math.min(CoreScene.MAX_ENEMIES_COUNTER - this._enemiesStore.getEnemies().length, CoreScene.ENEMIES_INITIAL_COORDS.length);
+		let spawnCounter = Math.min(this._enemiesQueue.getEnemiesInQueue(), CoreScene.ENEMIES_INITIAL_COORDS.length);
+		if (spawnCounter) spawnCounter = Math.min(CoreScene.MAX_ENEMIES_COUNTER - this._enemiesStore.getEnemies().length, spawnCounter);
 
 		CoreScene.ENEMIES_INITIAL_COORDS.slice(0, spawnCounter).forEach(coords => {
 			const typeIndex = getRandomFromRange(0, Enemy.TYPES.length - 1);
@@ -166,3 +183,4 @@ class CoreScene {
 CoreScene.MAX_ENEMIES_COUNTER = 7;
 CoreScene.ENEMIES_INITIAL_COORDS = [{ x: 0, y: 0 }, { x: 24, y: 0 }, { x: 48, y: 0 }];
 CoreScene.SCENE_END_DELAY = 5000;
+CoreScene.FONT_SIZE_SCALE_FACTOR = 2;
