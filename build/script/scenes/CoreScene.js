@@ -90,8 +90,12 @@ class CoreScene {
 
 		if (!eagleDestroyed && !noPlayersInStore) return;
 
-		if (!this._gameOverOrLevelCompleteTime) this._gameOverOrLevelCompleteTime = timestamp;
-		else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.SCENE_END_DELAY) this._sceneManager.showResultScene();
+		if (!this._gameOverOrLevelCompleteTime) {
+			this._gameOverOrLevelCompleteTime = timestamp;
+			this._state.setGameOver(true);
+		} else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.DELAY_BEFORE_SCENE_END) {
+			this._sceneManager.showResultScene();
+		}
 	}
 
 	_checkAndHandleLevelComplete({ timestamp }) {
@@ -101,7 +105,7 @@ class CoreScene {
 		if (!noEnemiesInQueue || !noEnemiesInStore) return;
 
 		if (!this._gameOverOrLevelCompleteTime) this._gameOverOrLevelCompleteTime = timestamp;
-		else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.SCENE_END_DELAY) this._sceneManager.showResultScene();
+		else if (timestamp > this._gameOverOrLevelCompleteTime + CoreScene.DELAY_BEFORE_SCENE_END) this._sceneManager.showResultScene();
 	}
 
 	_tryToSpawnEnemies({ timestamp }) {
@@ -182,5 +186,5 @@ class CoreScene {
 	}
 }
 
-CoreScene.SCENE_END_DELAY = 5000;
+CoreScene.DELAY_BEFORE_SCENE_END = 5000;
 CoreScene.FONT_SIZE_SCALE_FACTOR = 2;
