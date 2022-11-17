@@ -56,6 +56,11 @@ gulp.task('image:build', function(){
     .pipe(gulp.dest('build/images'));
 });
 
+gulp.task('json:build', function(){
+  return gulp.src('src/json/*.{json}')
+    .pipe(gulp.dest('build/json'));
+});
+
 gulp.task('svg:build', function(){
   return gulp.src('src/svg/sprite/*.svg')
     .pipe(svgstore({
@@ -70,6 +75,6 @@ gulp.task('video:build', function(){
     .pipe(gulp.dest('build/video'));
 });
 
-let build = gulp.series('fonts:build', 'image:build', 'svg:build', 'video:build', 'html:build', 'style:build', 'js:build', 'webserver');
+let build = gulp.series('fonts:build', 'image:build', 'json:build', 'svg:build', 'video:build', 'html:build', 'style:build', 'js:build', 'webserver');
 
 gulp.task('build', build);

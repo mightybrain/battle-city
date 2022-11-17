@@ -41,8 +41,8 @@ class State {
 		return this._levelIndex;
 	}
 
-	increaseLevelIndex() {
-		//this._levelIndex += 1;
+	setLevelIndex(index) {
+		this._levelIndex = index;
 	}
 
 	getPlayersStatisticsByEnemiesTypes() {

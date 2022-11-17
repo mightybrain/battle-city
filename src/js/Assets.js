@@ -11,7 +11,8 @@ class Assets {
 		return new Promise(resolve => {
 			Assets.DATA.forEach(source => {
 				const type = source.split('.').pop();
-				if (Assets.IMAGES_TYPES.includes(type)) this._loadImage(source, resolve)
+				if (Assets.IMAGES_TYPES.includes(type)) this._loadImage(source, resolve);
+				if (Assets.MAPS_TYPES.includes(type)) this._loadMap(source, resolve);
 			})
 		})
 	}
@@ -32,12 +33,23 @@ class Assets {
 		image.src = source;
 	}
 
+	_loadMap(source, resolve) {
+		const xhr = new XMLHttpRequest();
+		xhr.open('GET', source, true);
+		xhr.addEventListener('load', () => {
+			this._assets[source] = JSON.parse(xhr.responseText);
+			this._increaseLoaded(resolve);
+		})
+		xhr.send();
+	}
+
 	get(source) {
 		return this._assets[source];
 	}
 }
 
 Assets.IMAGES_TYPES = ['png'];
+Assets.MAPS_TYPES = ['json'];
 Assets.DATA = [
 	'images/title.png',
 	'images/player-select.png',
@@ -54,4 +66,5 @@ Assets.DATA = [
 	'images/enemy-type-02.png',
 	'images/enemy-type-03.png',
 	'images/enemy-type-04.png',
+	'json/levels.json',
 ];

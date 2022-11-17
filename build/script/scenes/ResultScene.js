@@ -6,6 +6,7 @@ class ResultScene {
 		this._safeAreaPosition = safeAreaPosition;
 		this._sceneManager = sceneManager;
 		this._assets = assets;
+		this._levels = this._assets.get('json/levels.json');
 
 		this._statistics = new Statistics({
 			state: this._state,
@@ -14,7 +15,8 @@ class ResultScene {
 			assets: this._assets,
 		});
 
-		this._label = `STAGE ${this._state.getLevelIndex()}`;
+		this._levelIndex = this._state.getLevelIndex();
+		this._label = `STAGE ${this._levelIndex}`;
 
 		this._fontSize = 0;
 		this._labelPosition = {
@@ -54,8 +56,10 @@ class ResultScene {
 			this._state.reset();
 			this._sceneManager.showMainScene();
 		} else {
+			let nextLevelIndex = this._levelIndex + 1;
+			if (!this._levels[nextLevelIndex]) nextLevelIndex = 1;
+			this._state.setLevelIndex(nextLevelIndex);
 			this._state.resetPlayersStatisticsByEnemiesTypes();
-			this._state.increaseLevelIndex();
 			this._sceneManager.showIntroScene();
 		}
 	}

@@ -74,33 +74,33 @@ class Bullet {
 		const { position: positionWithLevelBricksCollision, bricksForDestroy } = this._updatePositionWithLevelBricksCollision(position);
 		if (positionWithLevelBricksCollision !== position) {
 			position = positionWithLevelBricksCollision;
-			this.destroy();
 			this._level.destroyBricks(bricksForDestroy);
+			this.destroy();
 			return;
 		}
 
 		const { position: positionWithBulletsCollision, bulletForDestroy } = this._updatePositionWithBulletsCollision(position);
 		if (positionWithBulletsCollision !== position) {
 			position = positionWithBulletsCollision;
-			this.destroy();
 			bulletForDestroy.destroy();
+			this.destroy();
 			return;
 		}
 
 		const { position: positionWithTanksCollision, tankForDestroy } = this._updatePositionWithTanksCollision(position);
 		if (positionWithTanksCollision !== position) {
 			position = positionWithTanksCollision;
-			if (this._owner instanceof Player && tankForDestroy instanceof Enemy) this._updatePlayerStatistics(tankForDestroy);
-			this.destroy();
 			tankForDestroy.destroy();
+			if (this._owner instanceof Player && tankForDestroy instanceof Enemy && tankForDestroy.getDestroyed()) this._updatePlayerStatistics(tankForDestroy);
+			this.destroy();
 			return;
 		}
 
 		const positionWithEagleCollision = this._updatePositionWithEagleCollision(position);
 		if (positionWithEagleCollision !== position) {
 			position = positionWithEagleCollision;
-			this.destroy();
 			this._eagle.destroy();
+			this.destroy();
 			return;
 		}
 
