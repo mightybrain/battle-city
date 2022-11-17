@@ -37,6 +37,7 @@ class Tank {
 		this.setSize({ initial: true });
 
 		this._sign = sign;
+		this._ghost = true;
 		this._armor = armor;
 		this._speed = speed;
 		this._reload = false;
@@ -170,10 +171,15 @@ class Tank {
 			return twoAreasCollisioned(tankBoundaryBox, itemBoundaryBox);
 		})
 
-		if (!itemsWithCollision.length) return position;
+		if (!itemsWithCollision.length) {
+			this._ghost = false;
+			return position;
+		} else if (this._ghost || !itemsWithCollision.find(item => !item.getGhost())) {
+			return position;
+		};
 
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestItem = findClosestElem(itemsWithCollision, position, axis);
+		const closestItem = findClosestElem(itemsWithCollision.filter(item => !item.getGhost()), position, axis);
 		const closestItemBoundaryBox = closestItem.getRoundedBoundaryBox();
 
 		return roundPositionByObject(position, this._size, this._velocity, closestItemBoundaryBox);
@@ -271,6 +277,10 @@ class Tank {
 			x2: this._safeAreaPosition.x + Math.ceil(coords.x) * this._stepSize.width + this._size.width,
 			y2: this._safeAreaPosition.y + Math.ceil(coords.y) * this._stepSize.height + this._size.height,
 		}
+	}
+
+	getGhost() {
+		return this._ghost;
 	}
 
 	getPosition() {

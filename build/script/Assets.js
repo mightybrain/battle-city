@@ -44,7 +44,6 @@ class Assets {
 	}
 
 	get(source) {
-		if (!source) return this._assets;
 		return this._assets[source];
 	}
 }

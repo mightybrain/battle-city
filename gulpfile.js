@@ -57,7 +57,7 @@ gulp.task('image:build', function(){
 });
 
 gulp.task('json:build', function(){
-  return gulp.src('src/json/*.{json}')
+  return gulp.src('src/json/*')
     .pipe(gulp.dest('build/json'));
 });
 
