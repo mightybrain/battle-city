@@ -26,7 +26,7 @@ class EnemiesQueue {
 				x: this._position.x + this._enemySize.width * offsetX,
 				y: this._position.y + this._enemySize.height * offsetY,
 			}
-			ctx.drawImage(this._sprite, 0, 0, this._sprite.width, this._sprite.height, position.x, position.y, this._enemySize.width, this._enemySize.height);
+			ctx.drawImage(this._sprite, position.x, position.y, this._enemySize.width, this._enemySize.height);
 		}
 	}
 

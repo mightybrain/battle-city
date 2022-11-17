@@ -5,21 +5,26 @@ class State {
 
 		this._playersLives = {
 			1: 2,
+			2: 2,
+		}
+
+		this._playersPoints = {
+			1: 0,
 			2: 0,
 		}
 
-		this._playersStatByEnemiesTypes = {
+		this._playersStatisticsByEnemiesTypes = {
 			1: {
-				1: 0,
-				2: 0,
-				3: 0,
-				4: 0,
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
 			},
 			2: {
-				1: 0,
-				2: 0,
-				3: 0,
-				4: 0,
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
 			}
 		}
 	}
@@ -37,50 +42,64 @@ class State {
 	}
 
 	increaseLevelIndex() {
-		this._levelIndex += 1;
+		//this._levelIndex += 1;
 	}
 
-	resetLevelIndex() {
-		this._levelIndex = 1;
+	getPlayersStatisticsByEnemiesTypes() {
+		return this._playersStatisticsByEnemiesTypes;
 	}
 
-	getPlayersHighScore() {
-		const playersKeys = Object.keys(this._playersStatByEnemiesTypes);
-
-		return playersKeys.reduce((total, key) => {
-			const playerStat = this._playersStatByEnemiesTypes[key];
-		}, 0)
-	}
-
-	getPlayersStatByEnemiesTypes() {
-		return this._playersStatByEnemiesTypes;
-	}
-
-	increasePlayerStat(sign, type) {
-		this._playersStatByEnemiesTypes[sign][type] += 1;
+	increasePlayerStatistics(playerSign, enemySign, enemyPrice) {
+		const statistics = this._playersStatisticsByEnemiesTypes[playerSign][enemySign];
+		statistics.counter += 1;
+		statistics.points += enemyPrice;
+		this._playersPoints[playerSign] += enemyPrice;
 	}
 
 	getPlayersLives() {
 		return this._playersLives;
 	}
 
-	resetPlayersData() {
+	resetPlayersStatisticsByEnemiesTypes() {
+		this._playersStatisticsByEnemiesTypes = {
+			1: {
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
+			},
+			2: {
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
+			}
+		}
+	}
+
+	reset() {
+		this._gameOver = false;
+		this._levelIndex = 1;
 		this._playersLives = {
 			1: 2,
 			2: 2,
 		}
-		this._playersStatByEnemiesTypes = {
+		this._playersPoints = {
+			1: 0,
+			2: 0,
+		}
+		this._playersStatisticsByEnemiesTypes = {
 			1: {
-				1: 0,
-				2: 0,
-				3: 0,
-				4: 0,
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
 			},
 			2: {
-				1: 0,
-				2: 0,
-				3: 0,
-				4: 0,
+				1: { counter: 0, points: 0 },
+				2: { counter: 0, points: 0 },
+				3: { counter: 0, points: 0 },
+				4: { counter: 0, points: 0 },
 			}
 		}
 	}

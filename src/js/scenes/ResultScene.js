@@ -14,22 +14,13 @@ class ResultScene {
 			assets: this._assets,
 		});
 
-		this._levelLabel = `STAGE ${this._state.getLevelIndex()}`;
-		this._highScoreLabel = {
-			hint: 'HI-SCORE',
-			value: 0,
-		};
+		this._label = `STAGE ${this._state.getLevelIndex()}`;
 
 		this._fontSize = 0;
-		this._levelLabelPosition = {
+		this._labelPosition = {
 			x: 0,
 			y: 0,
 		}
-		this._highScoreLabelPosition = {
-			x: 0,
-			y: 0,
-		}
-		this._highScoreSpaceBetween = 0;
 		this.setSize();
 	}
 
@@ -39,10 +30,7 @@ class ResultScene {
 
 	setSize() {
 		this._fontSize = this._stepSize.height * ResultScene.FONT_SIZE_SCALE_FACTOR;
-
-		this._levelLabelPosition.y = this._stepSize.height * ResultScene.LEVEL_LABEL_POSITION_Y_SCALE_FACTOR + this._fontSize;
-		this._highScoreLabelPosition.y = this._stepSize.height * ResultScene.HIGH_SCORE_POSITION_Y_SCALE_FACTOR + this._fontSize;
-		this._highScoreSpaceBetween = this._stepSize.width * ResultScene.HIGH_SCORE_SPACE_BETWEEN_SCALE_FACTOR;
+		this._labelPosition.y = this._stepSize.height * ResultScene.LABEL_POSITION_Y_SCALE_FACTOR + this._fontSize;
 
 		this._statistics.setSize();
 	}
@@ -52,35 +40,23 @@ class ResultScene {
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.font = `${this._fontSize}px PressStart2P`;
-		const { textWidth: levelLabelWidth } = calcTextMetrics(ctx, this._levelLabel);
-
-		const levelLabelPositionX = (this._canvasSize.width - levelLabelWidth) / 2
+		const { textWidth } = calcTextMetrics(ctx, this._label);
+		this._labelPosition.x = (this._canvasSize.width - textWidth) / 2;
 		
 		ctx.fillStyle = '#FFFFFF';
-		ctx.fillText(this._levelLabel, levelLabelPositionX, this._levelLabelPosition.y);
-
-		const { textWidth: highScoreLabelHintWidth } = calcTextMetrics(ctx, this._highScoreLabel.hint);
-		const { textWidth: highScoreLabelValueWidth } = calcTextMetrics(ctx, this._highScoreLabel.value);
-
-		const highScoreLabelHintPositionX = (this._canvasSize.width - highScoreLabelHintWidth - highScoreLabelValueWidth - this._highScoreSpaceBetween) / 2;
-		const highScoreLabelValuePositionX = highScoreLabelHintPositionX + highScoreLabelHintWidth + this._highScoreSpaceBetween;
-
-		ctx.fillStyle = '#7F4040';
-		ctx.fillText(this._highScoreLabel.hint, highScoreLabelHintPositionX, this._highScoreLabelPosition.y);
-
-		ctx.fillStyle = '#BFA080';
-		ctx.fillText(this._highScoreLabel.value, highScoreLabelValuePositionX, this._highScoreLabelPosition.y);
+		ctx.fillText(this._label, this._labelPosition.x, this._labelPosition.y);
 
 		this._statistics.render(ctx);
 	}
 
 	_showNextScene() {
 		if (this._state.getGameOver()) {
-			// Сбросить стейт
+			this._state.reset();
 			this._sceneManager.showMainScene();
 		} else {
-			// Обновить уровень в стейте
-			this._sceneManager.showCoreScene();
+			this._state.resetPlayersStatisticsByEnemiesTypes();
+			this._state.increaseLevelIndex();
+			this._sceneManager.showIntroScene();
 		}
 	}
 
@@ -94,6 +70,4 @@ class ResultScene {
 }
 
 ResultScene.FONT_SIZE_SCALE_FACTOR = 2;
-ResultScene.HIGH_SCORE_POSITION_Y_SCALE_FACTOR = 4;
-ResultScene.HIGH_SCORE_SPACE_BETWEEN_SCALE_FACTOR = 4;
-ResultScene.LEVEL_LABEL_POSITION_Y_SCALE_FACTOR = 8;
+ResultScene.LABEL_POSITION_Y_SCALE_FACTOR = 8;

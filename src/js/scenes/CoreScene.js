@@ -132,6 +132,7 @@ class CoreScene {
 				initialDirection: { x: 0, y: 1 },
 				eagle: this._eagle,
 				assets: this._assets,
+				state: this._state,
 				sprite: this._assets.get(type.sprite),
 				speed: { 
 					x: this._stepSize.width * type.speedPerSecondScaleFactor,
@@ -139,6 +140,7 @@ class CoreScene {
 				},
 				armor: type.armor,
 				price: type.price,
+				sign: type.sign,
 			});
 			this._enemiesStore.addEnemy(enemy);
 			this._enemiesQueue.decreaseEnemiesInQueue();

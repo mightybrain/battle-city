@@ -1,5 +1,5 @@
 class Tank {
-	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, assets, initialDirection, sprite, armor, speed }) {
+	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, assets, initialDirection, sprite, armor, speed, sign, state }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -13,6 +13,7 @@ class Tank {
 		this._level = level;
 		this._eagle = eagle;
 		this._assets = assets;
+		this._state = state;
 
 		this._initialCoords = initialCoords;
 		this._initialDirection = initialDirection;
@@ -35,6 +36,7 @@ class Tank {
 		};
 		this.setSize({ initial: true });
 
+		this._sign = sign;
 		this._armor = armor;
 		this._speed = speed;
 		this._reload = false;
@@ -207,6 +209,7 @@ class Tank {
 			playersStore: this._playersStore,
 			enemiesStore: this._enemiesStore,
 			bulletsStore: this._bulletsStore,
+			state: this._state,
 			eagle: this._eagle,
 			assets: this._assets,
 		})
@@ -251,6 +254,10 @@ class Tank {
 
 	clearDestroyedBullets() {
 		this._personalBullets = this._personalBullets.filter(bullet => !bullet.getDestroyed());
+	}
+
+	getSign() {
+		return this._sign;
 	}
 
 	getRoundedBoundaryBox() {

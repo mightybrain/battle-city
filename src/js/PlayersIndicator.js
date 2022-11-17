@@ -59,7 +59,7 @@ class PlayersIndicator {
 
       ctx.fillText(this._playersLives[key], playerLivesCounterPosition.x, playerLivesCounterPosition.y);
 
-      ctx.drawImage(this._sprite, 0, 0, this._sprite.width, this._sprite.height, playerSpritePosition.x, playerSpritePosition.y, this._spriteSize.width, this._spriteSize.height);
+      ctx.drawImage(this._sprite, playerSpritePosition.x, playerSpritePosition.y, this._spriteSize.width, this._spriteSize.height);
     })
   }
 }

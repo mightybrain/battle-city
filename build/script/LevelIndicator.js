@@ -36,7 +36,7 @@ class LevelIndicator {
   }
 
   render(ctx) {
-    ctx.drawImage(this._sprite, 0, 0, this._sprite.width, this._sprite.height, this._position.x, this._position.y, this._spriteSize.width, this._spriteSize.height);
+    ctx.drawImage(this._sprite, this._position.x, this._position.y, this._spriteSize.width, this._spriteSize.height);
 
     ctx.font = `${this._fontSize}px PressStart2P`;
 		ctx.fillStyle = '#000000';

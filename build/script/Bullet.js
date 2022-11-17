@@ -1,5 +1,5 @@
 class Bullet {
-	constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, assets, owner, eagle, playersStore }) {
+	constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, assets, owner, eagle, playersStore, state }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -12,6 +12,7 @@ class Bullet {
 		this._enemiesStore = enemiesStore;
 		this._assets = assets;
 		this._owner = owner;
+		this._state = state;
 
 		this._level = level;
 		this._eagle = eagle;
@@ -89,6 +90,7 @@ class Bullet {
 		const { position: positionWithTanksCollision, tankForDestroy } = this._updatePositionWithTanksCollision(position);
 		if (positionWithTanksCollision !== position) {
 			position = positionWithTanksCollision;
+			if (this._owner instanceof Player && tankForDestroy instanceof Enemy) this._updatePlayerStatistics(tankForDestroy);
 			this.destroy();
 			tankForDestroy.destroy();
 			return;
@@ -103,6 +105,13 @@ class Bullet {
 		}
 
 		this._position = position;
+	}
+
+	_updatePlayerStatistics(enemy) {
+		const enemySign = enemy.getSign();
+		const enemyPrice = enemy.getPrice();
+		const playerSign = this._owner.getSign();
+		this._state.increasePlayerStatistics(playerSign, enemySign, enemyPrice);
 	}
 
 	_updatePositionWithEagleCollision(position) {

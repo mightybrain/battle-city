@@ -1,13 +1,6 @@
 class Player extends Tank {
 	constructor(props) {
 		super(props);
-
-		const { sign } = props;
-		this._sign = sign;
-	}
-
-	getSign() {
-		return this._sign;
 	}
 
 	handleKeyDown(code) {

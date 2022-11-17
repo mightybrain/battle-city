@@ -50,23 +50,27 @@ Enemy.TYPES = [
 		armor: 0,
 		sprite: 'images/enemy-01.png',
 		price: 100,
+		sign: 1,
 	},
 	{
 		speedPerSecondScaleFactor: 12,
 		armor: 0,
 		sprite: 'images/enemy-02.png',
 		price: 200,
+		sign: 2,
 	},
 	{
 		speedPerSecondScaleFactor: 6,
 		armor: 0,
 		sprite: 'images/enemy-03.png',
 		price: 100,
+		sign: 3,
 	},
 	{
 		speedPerSecondScaleFactor: 4,
 		armor: 3,
 		sprite: 'images/enemy-04.png',
 		price: 400,
+		sign: 4,
 	},
 ]
