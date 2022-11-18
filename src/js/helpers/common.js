@@ -45,7 +45,7 @@ function roundPositionByObject(position, size, velocity, objectBoundaryBox) {
 function getBoundaryBoxOfMovingElem(velocity, prevPosition, nextPosition, size) {
 	if (velocity.x > 0) {
 		return {
-			x1: prevPosition.x + size.width,
+			x1: prevPosition.x,
 			y1: prevPosition.y,
 			x2: nextPosition.x + size.width,
 			y2: nextPosition.y + size.height,
@@ -54,13 +54,13 @@ function getBoundaryBoxOfMovingElem(velocity, prevPosition, nextPosition, size) 
 		return {
 			x1: nextPosition.x,
 			y1: nextPosition.y,
-			x2: prevPosition.x,
+			x2: prevPosition.x + size.width,
 			y2: prevPosition.y + size.height,
 		}
 	} else if (velocity.y > 0) {
 		return {
 			x1: prevPosition.x,
-			y1: prevPosition.y + size.height,
+			y1: prevPosition.y,
 			x2: nextPosition.x + size.width,
 			y2: nextPosition.y + size.height,
 		}
@@ -69,7 +69,7 @@ function getBoundaryBoxOfMovingElem(velocity, prevPosition, nextPosition, size) 
 			x1: nextPosition.x,
 			y1: nextPosition.y,
 			x2: prevPosition.x + size.width,
-			y2: prevPosition.y,
+			y2: prevPosition.y + size.height,
 		}
 	}
 }

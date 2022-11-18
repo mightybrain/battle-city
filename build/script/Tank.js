@@ -169,10 +169,10 @@ class Tank {
 			return twoAreasCollisioned(tankBoundaryBox, itemBoundaryBox);
 		})
 
-		if (!itemsWithCollision.length) {
+		if (!itemsWithCollision.length || !itemsWithCollision.find(item => !item.getGhost())) {	
 			this._ghost = false;
 			return position;
-		} else if (this._ghost || !itemsWithCollision.find(item => !item.getGhost())) {
+		} else if (this._ghost) {
 			return position;
 		};
 
@@ -258,6 +258,10 @@ class Tank {
 
 	clearDestroyedBullets() {
 		this._personalBullets = this._personalBullets.filter(bullet => !bullet.getDestroyed());
+	}
+
+	setSprite(sprite) {
+		this._sprite = sprite;
 	}
 
 	getSign() {

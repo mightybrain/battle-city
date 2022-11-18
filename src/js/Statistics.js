@@ -91,7 +91,7 @@ class Statistics {
     this._table.forEach((row, y) => {
       row.forEach((cell, x) => {
         
-        if (!cell) return cell;
+        if (!cell) return;
         const { text, sprite, color } = cell;
 
         const cellPosition = {

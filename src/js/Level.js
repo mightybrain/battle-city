@@ -12,9 +12,7 @@ class Level {
 			width: 0,
 			height: 0,
 		}
-
 		this._map = this._setMap(this._levels[this._levelIndex]);
-		
 		this.setSize();
 	}
 

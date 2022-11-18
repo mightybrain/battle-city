@@ -1,9 +1,8 @@
 class ResultScene {
-	constructor({ state, canvasSize, stepSize, safeAreaPosition, sceneManager, assets }) {
+	constructor({ state, canvasSize, stepSize, sceneManager, assets }) {
 		this._state = state;
 		this._canvasSize = canvasSize;
 		this._stepSize = stepSize;
-		this._safeAreaPosition = safeAreaPosition;
 		this._sceneManager = sceneManager;
 		this._assets = assets;
 		this._levels = this._assets.get('json/levels.json');

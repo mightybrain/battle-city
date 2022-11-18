@@ -34,13 +34,8 @@ class Menu {
 		ctx.font = `${this._fontSize}px PressStart2P`;
 
 		const longestLabel = this._labels
-			.map(label => {
-				const { textWidth } = calcTextMetrics(ctx, label);
-				return { label, textWidth };
-			})
-			.reduce((total, item) => {
-				return item.textWidth > total ? item.textWidth : total;
-			}, 0);
+			.map(label => calcTextMetrics(ctx, label).textWidth)
+			.reduce((total, width) => width > total ? width : total, 0);
 			
 		this._position.x = (this._canvasSize.width - this._spriteSize.width - this._spaceBetweenSpriteAndLabel - longestLabel) / 2;
 
