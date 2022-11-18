@@ -114,9 +114,7 @@ class Bullet {
 		this._state.increasePlayerStatistics(playerSign, enemySign, enemyPrice);
 	}
 
-	_updatePositionWithEagleCollision(position) {
-		if (this._eagle.getDestroyed()) return position;
-		
+	_updatePositionWithEagleCollision(position) {		
 		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
 		const collision = twoAreasCollisioned(bulletBoundaryBox, eagleBoundaryBox);

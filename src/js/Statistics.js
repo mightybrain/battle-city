@@ -5,38 +5,16 @@ class Statistics {
     this._state = state;
     this._assets = assets;
 
-    this._statistics = this._state.getPlayersStatisticsByEnemiesTypes();
-
-    this._player1Total = Object.values(this._statistics[1])
-      .reduce((total, item) => {
-        return { 
-          counter: total.counter + item.counter,
-          points: total.points + item.points,
-        }
-      }, { counter: 0, points: 0 })
-
-      this._player2Total = Object.values(this._statistics[2])
-      .reduce((total, item) => {
-        return { 
-          counter: total.counter + item.counter,
-          points: total.points + item.points,
-        }
-      }, { counter: 0, points: 0 })
-
-    this._enemyType1Sprite = this._assets.get('images/enemy-type-01.png');
-    this._enemyType2Sprite = this._assets.get('images/enemy-type-02.png');
-    this._enemyType3Sprite = this._assets.get('images/enemy-type-03.png');
-    this._enemyType4Sprite = this._assets.get('images/enemy-type-04.png');
-
-		this._table = [
-			[0, { text: '1 PLAYER', color: '#7F4040' }, 0, 0, 0, 0, { text: '2 PLAYER', color: '#7F4040' }],
-			[0, { text: this._player1Total.points, color: '#BFA080' }, 0, 0, 0, 0, { text: this._player2Total.points, color: '#BFA080' }],
-			[{ text: this._statistics[1][1].points }, { text: 'PTS' }, { text: this._statistics[1][1].counter }, { sprite: this._enemyType1Sprite }, { text: this._statistics[2][1].counter }, { text: this._statistics[2][1].points }, { text: 'PTS' }],
-			[{ text: this._statistics[1][2].points }, { text: 'PTS' }, { text: this._statistics[1][2].counter }, { sprite: this._enemyType2Sprite }, { text: this._statistics[2][2].counter }, { text: this._statistics[2][2].points }, { text: 'PTS' }],
-			[{ text: this._statistics[1][3].points }, { text: 'PTS' }, { text: this._statistics[1][3].counter }, { sprite: this._enemyType3Sprite }, { text: this._statistics[2][3].counter }, { text: this._statistics[2][3].points }, { text: 'PTS' }],
-			[{ text: this._statistics[1][4].points }, { text: 'PTS' }, { text: this._statistics[1][4].counter }, { sprite: this._enemyType4Sprite }, { text: this._statistics[2][4].counter }, { text: this._statistics[2][4].points }, { text: 'PTS' }],
-			[0, { text: 'TOTAL' }, { text: this._player1Total.counter }, 0, { text: this._player2Total.counter }, 0, 0],
-		]
+    this._table = [
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+    ]
+    this._fillTable();
 
     this._fontSize = 0;
     this._size = {
@@ -56,6 +34,46 @@ class Statistics {
       height: 0,
     }
     this.setSize();
+  }
+
+  _fillTable() {
+    const statistics = this._state.getPlayersStatisticsByEnemiesTypes();
+    const player1Total = this._state.getPlayerTotal(1);
+    const player2Total = this._state.getPlayerTotal(2);
+
+    this._table[2][1] = this._table[3][1] = this._table[4][1] = this._table[5][1] = this._table[2][6] = this._table[3][6] = this._table[4][6] = this._table[5][6] = { text: 'PTS' };
+    this._table[6][2] = { text: 'TOTAL' };
+    this._table[0][1] = { text: '1 PLAYER', color: '#7F4040' };
+    this._table[0][6] = { text: '2 PLAYER', color: '#7F4040' };
+
+    this._table[2][0] = { text: statistics[1][1].points };
+    this._table[3][0] = { text: statistics[1][2].points };
+    this._table[4][0] = { text: statistics[1][3].points };
+    this._table[5][0] = { text: statistics[1][4].points };
+    this._table[2][5] = { text: statistics[2][1].points };
+    this._table[3][5] = { text: statistics[2][2].points };
+    this._table[4][5] = { text: statistics[2][3].points };
+    this._table[5][5] = { text: statistics[2][4].points };
+
+    this._table[2][2] = { text: statistics[1][1].counter };
+    this._table[3][2] = { text: statistics[1][2].counter };
+    this._table[4][2] = { text: statistics[1][3].counter };
+    this._table[5][2] = { text: statistics[1][4].counter };
+    this._table[2][4] = { text: statistics[2][1].counter };
+    this._table[3][4] = { text: statistics[2][2].counter };
+    this._table[4][4] = { text: statistics[2][3].counter };
+    this._table[5][4] = { text: statistics[2][4].counter };
+
+    this._table[2][3] = { sprite: this._assets.get('images/enemy-type-01.png') };
+    this._table[3][3] = { sprite: this._assets.get('images/enemy-type-02.png') };
+    this._table[4][3] = { sprite: this._assets.get('images/enemy-type-03.png') };
+    this._table[5][3] = { sprite: this._assets.get('images/enemy-type-04.png') };
+
+    this._table[1][1] = { text: player1Total.points, color: '#BFA080' };
+    this._table[1][6] = { text: player2Total.points, color: '#BFA080' };
+
+    this._table[6][2] = { text: player1Total.counter };
+    this._table[6][4] = { text: player2Total.counter };
   }
 
   setSize() {

@@ -118,8 +118,6 @@ class Tank {
 	}
 
 	_updatePositionWithEagleCollision(position) {
-		if (this._eagle.getDestroyed()) return position;
-		
 		const tankBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._size);
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
 		const collision = twoAreasCollisioned(tankBoundaryBox, eagleBoundaryBox);

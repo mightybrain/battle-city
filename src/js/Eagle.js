@@ -20,9 +20,9 @@ class Eagle {
 	}
 
 	render(ctx) {
-		if (this._destroyed) return;
+		const offsetX = this._destroyed ? this._sprite.width / 2 : 0; 
 		
-		ctx.drawImage(this._sprite, this._position.x, this._position.y, this._size.width, this._size.height);
+		ctx.drawImage(this._sprite, offsetX, 0, this._sprite.width / 2, this._sprite.height, this._position.x, this._position.y, this._size.width, this._size.height);
 	}
 
 	setSize() {

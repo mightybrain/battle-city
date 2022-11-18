@@ -49,6 +49,16 @@ class State {
 		return this._playersStatisticsByEnemiesTypes;
 	}
 
+	getPlayerTotal(sign) {
+    return Object.values(this._playersStatisticsByEnemiesTypes[sign])
+      .reduce((total, item) => {
+        return { 
+          counter: total.counter + item.counter,
+          points: total.points + item.points,
+        }
+      }, { counter: 0, points: 0 })
+	}
+
 	increasePlayerStatistics(playerSign, enemySign, enemyPrice) {
 		const statistics = this._playersStatisticsByEnemiesTypes[playerSign][enemySign];
 		statistics.counter += 1;
