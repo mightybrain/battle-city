@@ -205,11 +205,6 @@ class Bullet {
 				const brickBoundaryBox = brick.getRoundedBoundaryBox();
 				return twoAreasCollisioned(bulletBoundaryBox, brickBoundaryBox)
 			})
-			.sort((a, b) => {
-				return this._velocity.x ? 
-					a.getCoords().x - b.getCoords().x : 
-					a.getCoords().y - b.getCoords().y;
-			})
 
 		if (!bricksWithCollision.length) return { position };
 
@@ -223,11 +218,10 @@ class Bullet {
 	}
 
 	_findBricksForDestroy(bricks) {
-		if (!bricks.length) return null;
-
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestBrickCoord = this._velocity[axis] > 0 ? bricks[0].getCoords()[axis] : bricks[bricks.length - 1].getCoords()[axis];
-		const bricksForDestroy = bricks.filter(brick => brick.getCoords()[axis] === closestBrickCoord);
+		const closestBrick = findClosestElem(bricks, this._position, axis);
+		const closestBrickCoordByAxix = closestBrick.getCoords()[axis];
+		const bricksForDestroy = bricks.filter(brick => brick.getCoords()[axis] === closestBrickCoordByAxix);
 		const additionalBricksForDestroy = this._findAdditionalBricksForDestroy(bricksForDestroy);
 		return [ ...bricksForDestroy, ...additionalBricksForDestroy ];
 	}
@@ -236,19 +230,19 @@ class Bullet {
 		const levelMap = this._level.getMap();
 
 		return bricks.reduce((total, brick) => {
-			const coords = brick.getCoords();
-
 			if (!brick.getBreakByBullet()) return total;
+
+			const coords = brick.getCoords();
 
 			let prevBrick;
 			let nextBrick;
 
 			if (this._velocity.x) {
-				prevBrick = levelMap[Math.max(coords.y - 1, 0)][coords.x];
-				nextBrick = levelMap[Math.min(coords.y + 1, levelMap.length)][coords.x];
+				prevBrick = levelMap[coords.y - 1]?.[coords.x];
+				nextBrick = levelMap[coords.y + 1]?.[coords.x];
 			} else {
-				prevBrick = levelMap[coords.y][Math.max(coords.x - 1, 0)];
-				nextBrick = levelMap[coords.y][Math.min(coords.x + 1, levelMap.length)];
+				prevBrick = levelMap[coords.y][coords.x - 1];
+				nextBrick = levelMap[coords.y][coords.x + 1];
 			}
 
 			if (prevBrick && !bricks.includes(prevBrick) && !total.includes(prevBrick)) total.push(prevBrick);

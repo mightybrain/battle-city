@@ -16,6 +16,8 @@ class Enemy extends Tank {
 	}
 
 	update({ delta, timestamp }) {
+		super.update({ delta });
+
 		if (!this._prevChangeDirectionTime || timestamp > this._nextChangeDirectionTime) {
 			this._prevChangeDirectionTime = timestamp;
 			this._nextChangeDirectionTime = this._prevChangeDirectionTime + getRandomFromRange(500, 5000);
@@ -30,8 +32,6 @@ class Enemy extends Tank {
 			this._nextShootTime = this._prevShootTime + getRandomFromRange(500, 5000);
 			this._shoot();
 		}
-
-		super.update({ delta });
 	}
 
 	_moveRandomDirection() {
