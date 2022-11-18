@@ -35,7 +35,7 @@ class Menu {
 
 		const longestLabel = this._labels
 			.map(label => calcTextMetrics(ctx, label).textWidth)
-			.reduce((total, width) => width > total ? width : total, 0);
+			.reduce((total, width) => width > total ? width : total, 0)
 			
 		this._position.x = (this._canvasSize.width - this._spriteSize.width - this._spaceBetweenSpriteAndLabel - longestLabel) / 2;
 

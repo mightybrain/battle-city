@@ -9,6 +9,12 @@ class Enemy extends Tank {
 		this._nextChangeDirectionTime = 0;
 		this._prevShootTime = 0;
 		this._nextShootTime = 0;
+		window.addEventListener('blur', () => {
+			this._prevChangeDirectionTime = 0;
+			this._nextChangeDirectionTime = 0;
+			this._prevShootTime = 0;
+			this._nextShootTime = 0;
+		})
 	}
 
 	getPrice() {

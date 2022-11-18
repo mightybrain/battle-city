@@ -36,12 +36,14 @@ class Game {
 
 		this._addEventHandlers();
 		this._startGame();
+		window.addEventListener('blur', () => {
+			this._prevTimestamp = 0;
+		})
 	}
 
 	async _startGame() {
 		await this._assets.load();
 		this._sceneManager.showMainScene();
-		//this._sceneManager.showResultScene();
 
 		requestAnimationFrame(timestamp => {
 			this._gameLoop(timestamp);

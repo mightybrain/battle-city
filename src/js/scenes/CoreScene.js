@@ -72,6 +72,11 @@ class CoreScene {
 		this._prevEnemiesSpawnTime = 0;
 		this._nextEnemiesSpawnTime = 0;
 		this._gameOverOrLevelCompleteTime = 0;
+		window.addEventListener('blur', () => {
+			this._prevEnemiesSpawnTime = 0;
+			this._nextEnemiesSpawnTime = 0;
+			this._gameOverOrLevelCompleteTime = 0;
+		})
 	}
 
 	update(time) {
