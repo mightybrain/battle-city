@@ -150,7 +150,7 @@ class Tank {
 		if (!bricksWithCollision.length) return position;
 
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestBrick = findClosestElem(bricksWithCollision, position, axis);
+		const closestBrick = findClosestElem(bricksWithCollision, this._position, axis);
 		const closestBrickBoundaryBox = closestBrick.getRoundedBoundaryBox();
 
 		return roundPositionByObject(position, this._size, this._velocity, closestBrickBoundaryBox);
@@ -177,7 +177,7 @@ class Tank {
 		};
 
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestItem = findClosestElem(itemsWithCollision.filter(item => !item.getGhost()), position, axis);
+		const closestItem = findClosestElem(itemsWithCollision.filter(item => !item.getGhost()), this._position, axis);
 		const closestItemBoundaryBox = closestItem.getRoundedBoundaryBox();
 
 		return roundPositionByObject(position, this._size, this._velocity, closestItemBoundaryBox);

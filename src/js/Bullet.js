@@ -138,7 +138,7 @@ class Bullet {
 		if (!bulletsWithCollision.length) return { position };
 
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestBullet = findClosestElem(bulletsWithCollision, position, axis);
+		const closestBullet = findClosestElem(bulletsWithCollision, this._position, axis);
 		const closestBulletBoundaryBox = closestBullet.getBoundaryBox();
 
 		return {
@@ -164,7 +164,7 @@ class Bullet {
 		if (!tanksWithCollision.length) return { position };
 
 		const axis = this._velocity.x ? 'x' : 'y';
-		const closestTank = findClosestElem(tanksWithCollision, position, axis);
+		const closestTank = findClosestElem(tanksWithCollision, this._position, axis);
 		const closestTankBoundaryBox = closestTank.getBoundaryBox();
 
 		return {
