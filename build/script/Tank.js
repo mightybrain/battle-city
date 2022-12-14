@@ -1,5 +1,5 @@
 class Tank {
-	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, assets, initialDirection, sprite, armor, speed, sign, state }) {
+	constructor({ stepSize, safeAreaPosition, level, bulletsStore, initialCoords, enemiesStore, eagle, playersStore, explosionsStore, assets, initialDirection, sprite, spriteInitialAnimationIndex, armor, speed, sign, state }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -10,6 +10,7 @@ class Tank {
 		this._playersStore = playersStore;
 		this._enemiesStore = enemiesStore;
 		this._bulletsStore = bulletsStore;
+		this._explosionsStore = explosionsStore;
 		this._level = level;
 		this._eagle = eagle;
 		this._assets = assets;
@@ -43,8 +44,23 @@ class Tank {
 		this._reload = false;
 		this._personalBullets = [];
 		this._destroyed = false;
+		this._birth = true;
+		this._birthStartTimestamp = 0;
 		
-		this._sprite = sprite;
+		this._spriteInitialAnimationIndex = spriteInitialAnimationIndex;
+		this._sprite = new Sprite({
+			sprite: sprite,
+			framesNumber: 2,
+			animationsNumber: 4,
+			initialAnimationIndex: this._spriteInitialAnimationIndex,
+		})
+
+		this._birthSprite = new Sprite({
+			sprite: this._assets.get('images/birth.png'),
+			framesNumber: 6,
+			playing: true,
+			fps: 16,
+		})
 	}
 
 	setSize({ initial = false } = {}) {
@@ -76,28 +92,32 @@ class Tank {
 	}
 
 	render(ctx) {
-		let spriteOffset = 0;
-		if (this._direction.x > 0) spriteOffset = this._sprite.width * .75;
-		else if (this._direction.x < 0) spriteOffset = this._sprite.width * .5;
-		else if (this._direction.y > 0) spriteOffset = this._sprite.width * .25;
-
-		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._size.width, this._size.height);
+		if (this._birth) this._birthSprite.render(ctx, this._position, this._size);
+		else this._sprite.render(ctx, this._position, this._size);
 	}
 
-	update({ delta }) {
-		if (!this._velocity.x && !this._velocity.y) return;
+	update(time) {
+		if (!this._birthStartTimestamp) this._birthStartTimestamp = time.timestamp;
+		if (this._birth && time.timestamp > this._birthStartTimestamp + Tank.BIRTH_DURATION) this._birth = false;
 
-		const [ roundedAxis, floatAxis ] = this._velocity.x ? ['y', 'x'] : ['x', 'y'];
-		let position = {
-			[roundedAxis]: this._roundPositionByAxis(this._position[roundedAxis], roundedAxis),
-			[floatAxis]: this._position[floatAxis] + this._velocity[floatAxis] * delta,
+		if (this._birth) this._birthSprite.update(time);
+		else this._sprite.update(time);
+
+		if (this._velocity.x || this._velocity.y) {
+
+			const [ roundedAxis, floatAxis ] = this._velocity.x ? ['y', 'x'] : ['x', 'y'];
+			let position = {
+				[roundedAxis]: this._roundPositionByAxis(this._position[roundedAxis], roundedAxis),
+				[floatAxis]: this._position[floatAxis] + this._velocity[floatAxis] * time.delta,
+			}
+	
+			position = this._updatePositionWithLevelEdgesCollision(position);
+			position = this._updatePositionWithLevelBricksCollision(position);
+			position = this._updatePositionWithEagleCollision(position);
+			position = this._updatePositionWithPlayersAndEnemiesCollision(position);
+			this._position = position;
+
 		}
-
-		position = this._updatePositionWithLevelEdgesCollision(position);
-		position = this._updatePositionWithLevelBricksCollision(position);
-		position = this._updatePositionWithEagleCollision(position);
-		position = this._updatePositionWithPlayersAndEnemiesCollision(position);
-		this._position = position;
 	}
 
 	_roundPositionByAxis(positionByAxis, axis) {
@@ -213,6 +233,7 @@ class Tank {
 			playersStore: this._playersStore,
 			enemiesStore: this._enemiesStore,
 			bulletsStore: this._bulletsStore,
+			explosionsStore: this._explosionsStore,
 			state: this._state,
 			eagle: this._eagle,
 			assets: this._assets,
@@ -223,7 +244,7 @@ class Tank {
 
 		setTimeout(() => {
 			this._reload = false;
-		}, Tank.RELOAD_DELAY)
+		}, Tank.RELOAD_DURATION)
 	}
 
 	_move(direction) {
@@ -236,19 +257,66 @@ class Tank {
 			x: this._direction.x * this._speed.x,
 			y: this._direction.y * this._speed.y,
 		}
+
+		switch(direction) {
+			case Tank.DIRECTIONS.up:
+				this._sprite.setAnimationIndex(0);
+				break;
+			case Tank.DIRECTIONS.down:
+				this._sprite.setAnimationIndex(1);
+				break;
+			case Tank.DIRECTIONS.left:
+				this._sprite.setAnimationIndex(2);
+				break;
+			case Tank.DIRECTIONS.right:
+				this._sprite.setAnimationIndex(3);
+				break;
+		}
+
+		this._sprite.play();
 	}
 
 	_stop(direction) {
-		const mustStop = 
-			(direction === Tank.DIRECTIONS.up && this._velocity.y < 0) ||
-			(direction === Tank.DIRECTIONS.down && this._velocity.y > 0) ||
-			(direction === Tank.DIRECTIONS.right && this._velocity.x > 0) ||
-			(direction === Tank.DIRECTIONS.left && this._velocity.x < 0);
+		let mustStop = false;
 
-		if (mustStop) this._velocity = { x: 0, y: 0 }
+		if (!direction) {
+			mustStop = true;
+		} else {
+			mustStop =
+				(direction === Tank.DIRECTIONS.up && this._velocity.y < 0) ||
+				(direction === Tank.DIRECTIONS.down && this._velocity.y > 0) ||
+				(direction === Tank.DIRECTIONS.right && this._velocity.x > 0) ||
+				(direction === Tank.DIRECTIONS.left && this._velocity.x < 0);
+		}
+
+		if (mustStop) {
+			this._velocity = { x: 0, y: 0 };
+			this._sprite.stop();
+		}
+	}
+
+	_addExplosion() {
+		const type = Explosion.TYPES['large'];
+		const centerPoint = {
+			x: this._position.x + this._size.width / 2,
+			y: this._position.y + this._size.height / 2,
+		}
+		
+		const explosion = new Explosion({
+			...type,
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+			centerPoint: centerPoint,
+		});
+
+		this._explosionsStore.addExplosion(explosion);
 	}
 
 	respawn() {
+		this._birthStartTimestamp = 0;
+		this._birth = true;
+		this._sprite.setAnimationIndex(this._spriteInitialAnimationIndex);
 		this._position.x = this._safeAreaPosition.x + this._stepSize.width * this._initialCoords.x;
 		this._position.y = this._safeAreaPosition.y + this._stepSize.height * this._initialCoords.y;
 		this._direction.x = this._initialDirection.x;
@@ -281,6 +349,10 @@ class Tank {
 		}
 	}
 
+	getBirth() {
+		return this._birth;
+	}
+
 	getGhost() {
 		return this._ghost;
 	}
@@ -301,10 +373,15 @@ class Tank {
 	destroy() {
 		if (this._armor) {
 			this._armor -= 1;
+			return false;
 		} else {
 			this._destroyed = true;
+			this._stop();
+			this._addExplosion();
+
 			this._enemiesStore.clearDestroyedEnemies();
 			this._playersStore.clearDestroyedPlayers();
+			return true;
 		}
 	}
 
@@ -314,7 +391,8 @@ class Tank {
 }
 
 Tank.SIZE_SCALE_FACTOR = 4;
-Tank.RELOAD_DELAY = 700;
+Tank.RELOAD_DURATION = 700;
+Tank.BIRTH_DURATION = 1200;
 Tank.MAX_PERSONAL_BULLETS = 1;
 Tank.DIRECTIONS = {
 	up: {

@@ -1,5 +1,5 @@
 class Brick {
-	constructor({ coords, stepSize, safeAreaPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer, assets }) {
+	constructor({ coords, stepSize, safeAreaPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer, assets, sprite, spriteOffset, framesCounter }) {
 		this._stepSize = stepSize;
 		this._safeAreaPosition = safeAreaPosition;
 		this._coords = {
@@ -19,6 +19,10 @@ class Brick {
 		this._color = color;
 		this._layer = layer;
 		this._assets = assets;
+
+		this._sprite = this._assets.get(sprite);
+		this._spriteOffset = spriteOffset;
+		this._framesCounter = framesCounter;
 	}
 
 	setSize() {
@@ -27,8 +31,8 @@ class Brick {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = this._color;
-		ctx.fillRect(this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
+		const spriteOffset = this._sprite.width * this._spriteOffset;
+		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width / this._framesCounter, this._sprite.height, this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
 	}
 
 	getRoundedBoundaryBox() {
@@ -76,6 +80,9 @@ Brick.TYPES = {
 		breakByBullet: true,
 		breakBySuperBullet: true,
 		color: '#9C4A00',
+		sprite: 'images/bricks.png',
+		spriteOffset: 0,
+		framesCounter: 2,
 		layer: 'bottom',
 	},
 	2: {
@@ -84,6 +91,9 @@ Brick.TYPES = {
 		breakByBullet: true,
 		breakBySuperBullet: true,
 		color: '#9C4A00',
+		sprite: 'images/bricks.png',
+		spriteOffset: 0.5,
+		framesCounter: 2,
 		layer: 'bottom',
 	},
 	3: {
@@ -92,6 +102,9 @@ Brick.TYPES = {
 		breakByBullet: false,
 		breakBySuperBullet: true,
 		color: '#ffffff',
+		sprite: 'images/concrete.png',
+		spriteOffset: 0,
+		framesCounter: 4,
 		layer: 'bottom',
 	},
 	4: {
@@ -100,6 +113,9 @@ Brick.TYPES = {
 		breakByBullet: false,
 		breakBySuperBullet: true,
 		color: '#ffffff',
+		sprite: 'images/concrete.png',
+		spriteOffset: 0.25,
+		framesCounter: 4,
 		layer: 'bottom',
 	},
 	5: {
@@ -108,6 +124,9 @@ Brick.TYPES = {
 		breakByBullet: false,
 		breakBySuperBullet: true,
 		color: '#ffffff',
+		sprite: 'images/concrete.png',
+		spriteOffset: 0.5,
+		framesCounter: 4,
 		layer: 'bottom',
 	},
 	6: {
@@ -116,6 +135,9 @@ Brick.TYPES = {
 		breakByBullet: false,
 		breakBySuperBullet: true,
 		color: '#ffffff',
+		sprite: 'images/concrete.png',
+		spriteOffset: 0.75,
+		framesCounter: 4,
 		layer: 'bottom',
 	},
 	7: {
@@ -124,14 +146,86 @@ Brick.TYPES = {
 		breakByBullet: false,
 		breakBySuperBullet: false,
 		color: '#70b022',
+		sprite: 'images/forest.png',
+		spriteOffset: 0,
+		framesCounter: 4,
 		layer: 'top',
 	},
 	8: {
+		collideWithBullet: false,
+		collideWithTank: false,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#70b022',
+		sprite: 'images/forest.png',
+		spriteOffset: 0.25,
+		framesCounter: 4,
+		layer: 'top',
+	},
+	9: {
+		collideWithBullet: false,
+		collideWithTank: false,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#70b022',
+		sprite: 'images/forest.png',
+		spriteOffset: 0.5,
+		framesCounter: 4,
+		layer: 'top',
+	},
+	10: {
+		collideWithBullet: false,
+		collideWithTank: false,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#70b022',
+		sprite: 'images/forest.png',
+		spriteOffset: 0.75,
+		framesCounter: 4,
+		layer: 'top',
+	},
+	11: {
 		collideWithBullet: false,
 		collideWithTank: true,
 		breakByBullet: false,
 		breakBySuperBullet: false,
 		color: '#4e4ce3',
+		sprite: 'images/water.png',
+		spriteOffset: 0,
+		framesCounter: 4,
+		layer: 'bottom',
+	},
+	12: {
+		collideWithBullet: false,
+		collideWithTank: true,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#4e4ce3',
+		sprite: 'images/water.png',
+		spriteOffset: 0.25,
+		framesCounter: 4,
+		layer: 'bottom',
+	},
+	13: {
+		collideWithBullet: false,
+		collideWithTank: true,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#4e4ce3',
+		sprite: 'images/water.png',
+		spriteOffset: 0.5,
+		framesCounter: 4,
+		layer: 'bottom',
+	},
+	14: {
+		collideWithBullet: false,
+		collideWithTank: true,
+		breakByBullet: false,
+		breakBySuperBullet: false,
+		color: '#4e4ce3',
+		sprite: 'images/water.png',
+		spriteOffset: 0.75,
+		framesCounter: 4,		
 		layer: 'bottom',
 	},
 }

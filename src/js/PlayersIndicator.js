@@ -54,7 +54,7 @@ class PlayersIndicator {
       }
 
       ctx.font = `${this._fontSize}px PressStart2P`;
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillText(playerLabel, playerLabelPosition.x, playerLabelPosition.y);
 
       ctx.fillText(this._playersLives[key], playerLivesCounterPosition.x, playerLivesCounterPosition.y);

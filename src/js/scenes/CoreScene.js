@@ -15,12 +15,6 @@ class CoreScene {
 			assets: this._assets,
 		});
 
-		this._eagle = new Eagle({
-			stepSize: this._stepSize,
-			safeAreaPosition: this._safeAreaPosition,
-			assets: this._assets,
-		})
-
 		this._levelIndicator = new LevelIndicator({
 			state: this._state,
 			stepSize: this._stepSize,
@@ -33,11 +27,19 @@ class CoreScene {
 			safeAreaPosition: this._safeAreaPosition,
 			assets: this._assets,
 		});
+		this._explosionsStore = new ExplosionsStore();
 		this._enemiesStore = new EnemiesStore();
 		this._bulletsStore = new BulletsStore();
 		this._playersStore = new PlayersStore({
 			state: this._state,
 		});
+
+		this._eagle = new Eagle({
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+			explosionsStore: this._explosionsStore,
+		})
 
 		this._playersIndicator = new PlayersIndicator({
 			stepSize: this._stepSize,
@@ -53,11 +55,13 @@ class CoreScene {
 			bulletsStore: this._bulletsStore,
 			enemiesStore: this._enemiesStore,
 			playersStore: this._playersStore,
+			explosionsStore: this._explosionsStore,
 			eagle: this._eagle,
 			assets: this._assets,
 			state: this._state,
 			sign: 1,
 			sprite: this._assets.get('images/player-01.png'),
+			spriteInitialAnimationIndex: 0,
 			initialDirection: { x: 0, y: -1 },
 			initialCoords: { x: 18, y: 48 },
 			speed: { 
@@ -83,6 +87,7 @@ class CoreScene {
 		this._playersStore.update(time);
 		this._enemiesStore.update(time);
 		this._bulletsStore.update(time);
+		this._explosionsStore.update(time);
 		
 		this._tryToSpawnEnemies(time);
 		this._checkAndHandleGameOver(time);
@@ -133,16 +138,18 @@ class CoreScene {
 				stepSize: this._stepSize,
 				safeAreaPosition: this._safeAreaPosition,
 				level: this._level,
-				bulletsStore: this._bulletsStore,
 				player: this._player,
 				playersStore: this._playersStore,
+				bulletsStore: this._bulletsStore,
 				enemiesStore: this._enemiesStore,
+				explosionsStore: this._explosionsStore,
 				initialCoords: coords,
 				initialDirection: { x: 0, y: 1 },
 				eagle: this._eagle,
 				assets: this._assets,
 				state: this._state,
 				sprite: this._assets.get(type.sprite),
+				spriteInitialAnimationIndex: 1,
 				speed: { 
 					x: this._stepSize.width * type.speedPerSecondScaleFactor,
 					y: this._stepSize.height * type.speedPerSecondScaleFactor,
@@ -163,12 +170,13 @@ class CoreScene {
 		this._enemiesStore.setSize();
 		this._bulletsStore.setSize();
 		this._enemiesQueue.setSize();
+		this._explosionsStore.setSize();
 		this._playersIndicator.setSize();
 		this._levelIndicator.setSize();
 	}
 
 	render(ctx) {
-		ctx.fillStyle = '#636363';
+		ctx.fillStyle = '#0C0C0C';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		this._level.render(ctx, 'bottom');
@@ -176,6 +184,7 @@ class CoreScene {
 		this._playersStore.render(ctx);
 		this._enemiesStore.render(ctx);
 		this._bulletsStore.render(ctx);
+		this._explosionsStore.render(ctx);
 		this._level.render(ctx, 'top');
 		this._enemiesQueue.render(ctx);
 		this._playersIndicator.render(ctx);

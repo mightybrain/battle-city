@@ -1,8 +1,9 @@
 class Eagle {
-	constructor({ stepSize, safeAreaPosition, assets }) {
+	constructor({ stepSize, safeAreaPosition, assets, explosionsStore }) {
 		this._stepSize = stepSize;
 		this._safeAreaPosition = safeAreaPosition;
 		this._assets = assets;
+		this._explosionsStore = explosionsStore;
 
 		this._size = {
 			width: 0,
@@ -38,6 +39,25 @@ class Eagle {
 
 	destroy() {
 		this._destroyed = true;
+		this._addExplosion();
+	}
+
+	_addExplosion() {
+		const type = Explosion.TYPES['large'];
+		const centerPoint = {
+			x: this._position.x + this._size.width / 2,
+			y: this._position.y + this._size.height / 2,
+		}
+		
+		const explosion = new Explosion({
+			...type,
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+			centerPoint: centerPoint,
+		});
+
+		this._explosionsStore.addExplosion(explosion);
 	}
 
 	getRoundedBoundaryBox() {

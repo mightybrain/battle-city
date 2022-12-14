@@ -66,5 +66,13 @@ Assets.DATA = [
 	'images/enemy-type-02.png',
 	'images/enemy-type-03.png',
 	'images/enemy-type-04.png',
+	'images/small-explosion.png',
+	'images/large-explosion.png',
+	'images/birth.png',
+	'images/bullet.png',
+	'images/bricks.png',
+	'images/concrete.png',
+	'images/forest.png',
+	'images/water.png',
 	'json/levels.json',
 ];

@@ -35,7 +35,7 @@ class Level {
 
 	render(ctx, layer) {
 		if (layer === 'bottom') {
-			ctx.fillStyle = '#000000';
+			ctx.fillStyle = '#121212';
 			ctx.fillRect(this._safeAreaPosition.x, this._safeAreaPosition.y, this._mapSize.width, this._mapSize.height);
 		}
 

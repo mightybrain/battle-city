@@ -39,7 +39,7 @@ class LevelIndicator {
     ctx.drawImage(this._sprite, this._position.x, this._position.y, this._spriteSize.width, this._spriteSize.height);
 
     ctx.font = `${this._fontSize}px PressStart2P`;
-		ctx.fillStyle = '#000000';
+		ctx.fillStyle = '#FFFFFF';
 		ctx.fillText(this._levelIndex, this._levelIndexPosition.x, this._levelIndexPosition.y);
   }
 }

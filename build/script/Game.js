@@ -39,12 +39,6 @@ class Game {
 		window.addEventListener('blur', () => {
 			this._prevTimestamp = 0;
 		})
-		/*window.addEventListener('blur', () => {
-			console.log(this._prevTimestamp);
-		})
-		window.addEventListener('focus', () => {
-			console.log(this._prevTimestamp);
-		})*/
 	}
 
 	async _startGame() {

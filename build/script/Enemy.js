@@ -21,8 +21,12 @@ class Enemy extends Tank {
 		return this._price;
 	}
 
-	update({ delta, timestamp }) {
-		super.update({ delta });
+	update(time) {
+		super.update(time);
+
+		if (this._birth) return;
+
+		const { timestamp } = time;
 
 		if (!this._prevChangeDirectionTime || timestamp > this._nextChangeDirectionTime) {
 			this._prevChangeDirectionTime = timestamp;

@@ -1,5 +1,5 @@
 class Bullet {
-	constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, assets, owner, eagle, playersStore, state }) {
+	constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, explosionsStore, assets, owner, eagle, playersStore, state }) {
 		this._stepSize = stepSize;
 		this._prevStepSizeWidth = this._stepSize.width;
 		this._prevStepSizeHeight = this._stepSize.height;
@@ -10,9 +10,11 @@ class Bullet {
 		this._playersStore = playersStore;
 		this._bulletsStore = bulletsStore;
 		this._enemiesStore = enemiesStore;
+		this._explosionsStore = explosionsStore;
 		this._assets = assets;
 		this._owner = owner;
 		this._state = state;
+		this._sprite = this._assets.get('images/bullet.png')
 
 		this._level = level;
 		this._eagle = eagle;
@@ -54,8 +56,12 @@ class Bullet {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = 'white';
-		ctx.fillRect(this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
+		let spriteOffset = 0;
+		if (this._direction.x > 0) spriteOffset = this._sprite.width * .75;
+		else if (this._direction.x < 0) spriteOffset = this._sprite.width * .5;
+		else if (this._direction.y > 0) spriteOffset = this._sprite.width * .25;
+
+		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
 	}
 
 	update({ delta }) {
@@ -67,6 +73,7 @@ class Bullet {
 		const positionWithLevelEdgesCollision = this._updatePositionWithLevelEdgesCollision(position);
 		if (positionWithLevelEdgesCollision !== position) {
 			position = positionWithLevelEdgesCollision;
+			this._addExplosion(position);
 			this.destroy();
 			return;
 		}
@@ -75,6 +82,7 @@ class Bullet {
 		if (positionWithLevelBricksCollision !== position) {
 			position = positionWithLevelBricksCollision;
 			this._level.destroyBricks(bricksForDestroy);
+			this._addExplosion(position);
 			this.destroy();
 			return;
 		}
@@ -90,7 +98,8 @@ class Bullet {
 		const { position: positionWithTanksCollision, tankForDestroy } = this._updatePositionWithTanksCollision(position);
 		if (positionWithTanksCollision !== position) {
 			position = positionWithTanksCollision;
-			tankForDestroy.destroy();
+			const destroyed = tankForDestroy.destroy();
+			if (!destroyed) this._addExplosion(position);
 			if (this._owner instanceof Player && tankForDestroy instanceof Enemy && tankForDestroy.getDestroyed()) this._updatePlayerStatistics(tankForDestroy);
 			this.destroy();
 			return;
@@ -105,6 +114,28 @@ class Bullet {
 		}
 
 		this._position = position;
+	}
+
+	_getTouchPoint(position) {
+		if (this._velocity.x > 0) return { x: position.x + this._stepSize.width, y: position.y + this._stepSize.height / 2 };
+		else if (this._velocity.x < 0) return { x: position.x, y: position.y + this._stepSize.height / 2 };
+		else if (this._velocity.y > 0) return { x: position.x + this._stepSize.width / 2, y: position.y + this._stepSize.height };
+		else if (this._velocity.y < 0) return { x: position.x + this._stepSize.width / 2, y: position.y }
+	}
+
+	_addExplosion(position) {
+		const type = Explosion.TYPES['small'];
+		const touchPoint = this._getTouchPoint(position);
+		
+		const explosion = new Explosion({
+			...type,
+			stepSize: this._stepSize,
+			safeAreaPosition: this._safeAreaPosition,
+			assets: this._assets,
+			centerPoint: touchPoint,
+		});
+
+		this._explosionsStore.addExplosion(explosion);
 	}
 
 	_updatePlayerStatistics(enemy) {
@@ -155,6 +186,7 @@ class Bullet {
 
 		const tanksWithCollision = [ ...players, ...enemies ].filter(tank => {
 			if (this._owner === tank) return false;
+			if (tank.getBirth()) return false;
 			if (this._owner instanceof Enemy && tank instanceof Enemy) return false;
 
 			const tankBoundaryBox = tank.getBoundaryBox();

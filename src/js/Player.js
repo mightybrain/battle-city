@@ -4,6 +4,8 @@ class Player extends Tank {
 	}
 
 	handleKeyDown(code) {
+		if (this._birth || this._destroyed) return;
+
 		if (code === Player.SHOOT_EVENT) this._shoot();
 
 		if (Player.MOVE_EVENTS.includes(code)) {
@@ -12,7 +14,9 @@ class Player extends Tank {
 		}
 	}
 
-	handleKeyUp(code) {    
+	handleKeyUp(code) {
+		if (this._birth || this._destroyed) return;
+
 		if (Player.MOVE_EVENTS.includes(code)) {
 			const key = code.replace('Arrow', '').toLowerCase();
 			this._stop(Tank.DIRECTIONS[key]);
