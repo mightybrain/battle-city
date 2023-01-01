@@ -8,7 +8,7 @@ class BulletsStore {
 	}
 
 	clearDestroyedBullets() {
-		this._bullets = this._bullets.filter(bullet => !bullet.getDestroyed());
+		this._bullets = this._bullets.filter(bullet => !bullet.isDestroyed());
 	}
 
 	render(ctx) {

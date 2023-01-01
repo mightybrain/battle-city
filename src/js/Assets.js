@@ -1,10 +1,7 @@
 class Assets {
 	constructor() {
+		this._assets = {};
 		this._loaded = 0;
-
-		this._assets = {
-
-		};
 	}
 
 	load() {
@@ -12,7 +9,7 @@ class Assets {
 			Assets.DATA.forEach(source => {
 				const type = source.split('.').pop();
 				if (Assets.IMAGES_TYPES.includes(type)) this._loadImage(source, resolve);
-				if (Assets.MAPS_TYPES.includes(type)) this._loadMap(source, resolve);
+				else if (Assets.MAPS_TYPES.includes(type)) this._loadMap(source, resolve);
 			})
 		})
 	}
@@ -36,10 +33,12 @@ class Assets {
 	_loadMap(source, resolve) {
 		const xhr = new XMLHttpRequest();
 		xhr.open('GET', source, true);
+
 		xhr.addEventListener('load', () => {
 			this._assets[source] = JSON.parse(xhr.responseText);
 			this._increaseLoaded(resolve);
 		})
+
 		xhr.send();
 	}
 

@@ -7,11 +7,11 @@ class Game {
 			width: 0,
 			height: 0,
 		};
-		this._stepSize = {
+		this._tileSize = {
 			width: 0,
 			height: 0,
 		};
-		this._safeAreaPosition = {
+		this._gameAreaPosition = {
 			x: 0,
 			y: 0,
 		};
@@ -21,8 +21,8 @@ class Game {
 
 		this._sceneManager = new SceneManager({
 			canvasSize: this._canvasSize,
-			stepSize: this._stepSize,
-			safeAreaPosition: this._safeAreaPosition,
+			tileSize: this._tileSize,
+			gameAreaPosition: this._gameAreaPosition,
 			assets: this._assets,
 		});
 
@@ -32,13 +32,14 @@ class Game {
 			sceneManager: this._sceneManager,
 		});
 
+		this._pause = false;
+		this._pauseStartTime = 0;
+		this._pauseTotalDuration = 0;
+
 		this._prevTimestamp = 0;
 
 		this._addEventHandlers();
 		this._startGame();
-		window.addEventListener('blur', () => {
-			this._prevTimestamp = 0;
-		})
 	}
 
 	async _startGame() {
@@ -46,26 +47,35 @@ class Game {
 		this._sceneManager.showMainScene();
 
 		requestAnimationFrame(timestamp => {
-			this._gameLoop(timestamp);
+			this._gameLoop(timestamp - this._pauseTotalDuration);
 		});
 	}
 	
 	_gameLoop(timestamp) {
-		requestAnimationFrame(newTimestamp => {
-			this._gameLoop(newTimestamp);
+		requestAnimationFrame(nextTimestamp => {
+			this._gameLoop(nextTimestamp - this._pauseTotalDuration);
 		});
 
-		if (this._prevTimestamp) {
-			const prevFrameDuration = timestamp - this._prevTimestamp;
-			const delta = prevFrameDuration / 1000;
-			this._sceneManager.update({ delta, prevFrameDuration, timestamp });
-			this._renderer.render();
-		}
+		this._renderer.render();
 
+		if (this._pause) return;
+
+		const prevTimestamp = this._prevTimestamp || timestamp;
+		const prevFrameDuration = timestamp - prevTimestamp;
+		const delta = prevFrameDuration / 1000;
+		this._sceneManager.update({ delta, prevFrameDuration, timestamp });
 		this._prevTimestamp = timestamp;
 	}
 
 	_addEventHandlers() {
+		window.addEventListener('blur', () => {
+			this._pauseStartTime = Date.now();
+			this._pause = true;
+		})
+		window.addEventListener('focus', () => {
+			this._pauseTotalDuration += Date.now() - this._pauseStartTime;
+			this._pause = false;
+		})
 		window.addEventListener('keydown', event => {
 			if (!event.repeat) this._sceneManager.handleKeyDown(event);
 		})
@@ -74,7 +84,7 @@ class Game {
 		})
 		window.addEventListener('resize', () => {
 			this._setSize();
-			this._sceneManager.setSize();
+			this._sceneManager.resize();
 		});
 	}
 
@@ -84,19 +94,19 @@ class Game {
 		this._canvas.width = this._canvasSize.width;
 		this._canvas.height = this._canvasSize.height;
 
-		let safeAreaWidth = this._canvasSize.width - 40;
-		let safeAreaHeight = safeAreaWidth * 0.65;
+		let approximateGameAreaWidth = this._canvasSize.width - 40;
+		let approximateGameAreaHeight = approximateGameAreaWidth * 0.65;
 
-		if (safeAreaHeight + 40 > this._canvasSize.height) {
-			safeAreaHeight = this._canvasSize.height - 40;
-			safeAreaWidth = safeAreaHeight * 1.53;
+		if (approximateGameAreaHeight + 40 > this._canvasSize.height) {
+			approximateGameAreaHeight = this._canvasSize.height - 40;
+			approximateGameAreaWidth = approximateGameAreaHeight * 1.54;
 		}	
 
-		this._stepSize.width = Math.round(safeAreaWidth / Game.MAX_STEPS.x);
-		this._stepSize.height = Math.round(safeAreaHeight / Game.MAX_STEPS.y);
+		this._tileSize.width = Math.round(approximateGameAreaWidth / Game.TILES_NUM.x);
+		this._tileSize.height = Math.round(approximateGameAreaHeight / Game.TILES_NUM.y);
 
-		this._safeAreaPosition.x = Math.round((this._canvasSize.width - this._stepSize.width * Game.MAX_STEPS.x) / 2);
-		this._safeAreaPosition.y = Math.round((this._canvasSize.height - this._stepSize.height * Game.MAX_STEPS.y) / 2);
+		this._gameAreaPosition.x = Math.round(this._canvasSize.width / 2 - this._tileSize.width * Game.TILES_NUM.x / 2);
+		this._gameAreaPosition.y = Math.round(this._canvasSize.height / 2 - this._tileSize.height * Game.TILES_NUM.y / 2);
 	}
 }
 
@@ -104,7 +114,7 @@ addEventListener('DOMContentLoaded', () => {
 	new Game(document.getElementById('battle-city'));
 })
 
-Game.MAX_STEPS = {
+Game.TILES_NUM = {
 	x: 60,
 	y: 52,
 }

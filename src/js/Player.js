@@ -3,10 +3,10 @@ class Player extends Tank {
 		super(props);
 	}
 
-	handleKeyDown(code) {
-		if (this._birth || this._destroyed) return;
+	handleKeyDown({ code, timeStamp: timestamp }) {
+		if (!this.isActive()) return;
 
-		if (code === Player.SHOOT_EVENT) this._shoot();
+		if (code === Player.SHOOT_EVENT) this._shoot(timestamp);
 
 		if (Player.MOVE_EVENTS.includes(code)) {
 			const key = code.replace('Arrow', '').toLowerCase();
@@ -14,8 +14,8 @@ class Player extends Tank {
 		}
 	}
 
-	handleKeyUp(code) {
-		if (this._birth || this._destroyed) return;
+	handleKeyUp({ code }) {
+		if (!this.isActive()) return;
 
 		if (Player.MOVE_EVENTS.includes(code)) {
 			const key = code.replace('Arrow', '').toLowerCase();

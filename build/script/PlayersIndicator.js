@@ -1,7 +1,7 @@
 class PlayersIndicator {
-	constructor ({ stepSize, safeAreaPosition, assets, state }) {
-		this._safeAreaPosition = safeAreaPosition;
-		this._stepSize = stepSize;
+	constructor ({ tileSize, gameAreaPosition, assets, state }) {
+		this._gameAreaPosition = gameAreaPosition;
+		this._tileSize = tileSize;
 		this._assets = assets;
     this._state = state;
 
@@ -24,13 +24,13 @@ class PlayersIndicator {
   }
 
   setSize() {
-    this._fontSize = this._stepSize.height * PlayersIndicator.FONT_SIZE_SCALE_FACTOR;
-    this._position.x = this._safeAreaPosition.x + this._stepSize.width * PlayersIndicator.POSITION_X_SCALE_FACTOR;
-    this._position.y = this._safeAreaPosition.y + this._stepSize.height * PlayersIndicator.POSITION_Y_SCALE_FACTOR;
-    this._spriteSize.width = this._stepSize.width * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
-    this._spriteSize.height = this._stepSize.height * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
-    this._playerIndicatorHeight = this._stepSize.height * PlayersIndicator.PLAYER_INDICATOR_HEIGHT_SCALE_FACTOR;
-    this._spaceBetweenPlayers = this._stepSize.height * PlayersIndicator.SPACE_BETWEEN_PLAYERS_SCALE_FACTOR;
+    this._fontSize = this._tileSize.height * PlayersIndicator.FONT_SIZE_SCALE_FACTOR;
+    this._position.x = this._gameAreaPosition.x + this._tileSize.width * PlayersIndicator.POSITION_X_SCALE_FACTOR;
+    this._position.y = this._gameAreaPosition.y + this._tileSize.height * PlayersIndicator.POSITION_Y_SCALE_FACTOR;
+    this._spriteSize.width = this._tileSize.width * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
+    this._spriteSize.height = this._tileSize.height * PlayersIndicator.SPRITE_SIZE_SCALE_FACTOR;
+    this._playerIndicatorHeight = this._tileSize.height * PlayersIndicator.PLAYER_INDICATOR_HEIGHT_SCALE_FACTOR;
+    this._spaceBetweenPlayers = this._tileSize.height * PlayersIndicator.SPACE_BETWEEN_PLAYERS_SCALE_FACTOR;
   }
 
   render(ctx) {

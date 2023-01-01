@@ -1,11 +1,11 @@
 class Explosion {
-  constructor({ stepSize, safeAreaPosition, centerPoint, assets, sizeScaleFactor, sprite, spriteFramesNumber, fps }) {
-    this._stepSize = stepSize;
-		this._prevStepSizeWidth = this._stepSize.width;
-		this._prevStepSizeHeight = this._stepSize.height;
-		this._safeAreaPosition = safeAreaPosition;
-		this._prevSafeAreaPositionX = this._safeAreaPosition.x;
-		this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+  constructor({ tileSize, gameAreaPosition, centerPoint, assets, sizeScaleFactor, sprite, spriteFramesNumber, fps }) {
+    this._tileSize = tileSize;
+		this._prevTileSizeWidth = this._tileSize.width;
+		this._prevTileSizeHeight = this._tileSize.height;
+		this._gameAreaPosition = gameAreaPosition;
+		this._prevGameAreaPositionX = this._gameAreaPosition.x;
+		this._prevGameAreaPositionY = this._gameAreaPosition.y;
     this._sizeScaleFactor = sizeScaleFactor;
     this._centerPoint = centerPoint;
     this._assets = assets;
@@ -32,24 +32,24 @@ class Explosion {
   }
 
   setSize({ initial = false } = {}) {
-    this._size.width = this._sizeScaleFactor * this._stepSize.width;
-    this._size.height = this._sizeScaleFactor * this._stepSize.height;
+    this._size.width = this._sizeScaleFactor * this._tileSize.width;
+    this._size.height = this._sizeScaleFactor * this._tileSize.height;
 
 		if (initial) {
       this._position.x = this._centerPoint.x - this._size.width / 2;
       this._position.y = this._centerPoint.y - this._size.height / 2;
 		} else {
 			const coords = {
-				x: (this._position.x - this._prevSafeAreaPositionX) / this._prevStepSizeWidth,
-				y: (this._position.y - this._prevSafeAreaPositionY) / this._prevStepSizeHeight,
+				x: (this._position.x - this._prevGameAreaPositionX) / this._prevTileSizeWidth,
+				y: (this._position.y - this._prevGameAreaPositionY) / this._prevTileSizeHeight,
 			}
-			this._position.x = this._safeAreaPosition.x + this._stepSize.width * coords.x;
-			this._position.y = this._safeAreaPosition.y + this._stepSize.height * coords.y;
+			this._position.x = this._gameAreaPosition.x + this._tileSize.width * coords.x;
+			this._position.y = this._gameAreaPosition.y + this._tileSize.height * coords.y;
 
-			this._prevStepSizeWidth = this._stepSize.width;
-			this._prevStepSizeHeight = this._stepSize.height;
-			this._prevSafeAreaPositionX = this._safeAreaPosition.x;
-			this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+			this._prevTileSizeWidth = this._tileSize.width;
+			this._prevTileSizeHeight = this._tileSize.height;
+			this._prevGameAreaPositionX = this._gameAreaPosition.x;
+			this._prevGameAreaPositionY = this._gameAreaPosition.y;
     }
   }
 

@@ -1,18 +1,11 @@
 class ResultScene {
-	constructor({ state, canvasSize, stepSize, sceneManager, assets }) {
+	constructor({ state, canvasSize, tileSize, sceneManager, assets }) {
 		this._state = state;
 		this._canvasSize = canvasSize;
-		this._stepSize = stepSize;
+		this._tileSize = tileSize;
 		this._sceneManager = sceneManager;
 		this._assets = assets;
 		this._levels = this._assets.get('json/levels.json');
-
-		this._statistics = new Statistics({
-			state: this._state,
-			canvasSize: this._canvasSize,
-			stepSize: this._stepSize,
-			assets: this._assets,
-		});
 
 		this._levelIndex = this._state.getLevelIndex();
 		this._label = `STAGE ${this._levelIndex}`;
@@ -22,22 +15,32 @@ class ResultScene {
 			x: 0,
 			y: 0,
 		}
-		this.setSize();
+		this._setSize();
+
+		this._statistics = new Statistics({
+			state: this._state,
+			canvasSize: this._canvasSize,
+			tileSize: this._tileSize,
+			assets: this._assets,
+		});
 	}
 
 	update(time) {
 
 	}
 
-	setSize() {
-		this._fontSize = this._stepSize.height * ResultScene.FONT_SIZE_SCALE_FACTOR;
-		this._labelPosition.y = this._stepSize.height * ResultScene.LABEL_POSITION_Y_SCALE_FACTOR + this._fontSize;
+	_setSize() {
+		this._fontSize = this._tileSize.height * ResultScene.FONT_SIZE_SCALE_FACTOR;
+		this._labelPosition.y = this._tileSize.height * ResultScene.LABEL_POSITION_Y_SCALE_FACTOR + this._fontSize;
+	}
 
+	resize() {
+		this._setSize();
 		this._statistics.setSize();
 	}
 
 	render(ctx) {
-		ctx.fillStyle = '#000000';
+		ctx.fillStyle = '#0C0C0C';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.font = `${this._fontSize}px PressStart2P`;
@@ -63,11 +66,11 @@ class ResultScene {
 		}
 	}
 
-	handleKeyDown(code) {
+	handleKeyDown({ code }) {
 
 	}
 
-	handleKeyUp(code) {
+	handleKeyUp({ code }) {
 		if (code === 'Enter') this._showNextScene();
 	}
 }

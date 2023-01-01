@@ -1,7 +1,7 @@
 class LevelIndicator {
-	constructor ({ stepSize, safeAreaPosition, assets, state }) {
-		this._safeAreaPosition = safeAreaPosition;
-		this._stepSize = stepSize;
+	constructor ({ tileSize, gameAreaPosition, assets, state }) {
+		this._gameAreaPosition = gameAreaPosition;
+		this._tileSize = tileSize;
 		this._assets = assets;
     this._state = state;
 
@@ -26,11 +26,11 @@ class LevelIndicator {
   }
 
   setSize() {
-    this._position.x = this._safeAreaPosition.x + this._stepSize.width * LevelIndicator.POSITION_X_SCALE_FACTOR;
-    this._position.y = this._safeAreaPosition.y + this._stepSize.height * LevelIndicator.POSITION_Y_SCALE_FACTOR;
-    this._spriteSize.width = this._stepSize.width * LevelIndicator.SPRITE_SIZE_SCALE_FACTOR;
-    this._spriteSize.height = this._stepSize.height * LevelIndicator.SPRITE_SIZE_SCALE_FACTOR;
-    this._fontSize = this._stepSize.height * LevelIndicator.FONT_SIZE_SCALE_FACTOR;
+    this._position.x = this._gameAreaPosition.x + this._tileSize.width * LevelIndicator.POSITION_X_SCALE_FACTOR;
+    this._position.y = this._gameAreaPosition.y + this._tileSize.height * LevelIndicator.POSITION_Y_SCALE_FACTOR;
+    this._spriteSize.width = this._tileSize.width * LevelIndicator.SPRITE_SIZE_SCALE_FACTOR;
+    this._spriteSize.height = this._tileSize.height * LevelIndicator.SPRITE_SIZE_SCALE_FACTOR;
+    this._fontSize = this._tileSize.height * LevelIndicator.FONT_SIZE_SCALE_FACTOR;
     this._levelIndexPosition.x = this._position.x;
     this._levelIndexPosition.y = this._position.y + this._spriteSize.height + this._fontSize;
   }

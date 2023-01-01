@@ -1,7 +1,7 @@
 class Statistics {
-  constructor({ state, canvasSize, stepSize, assets }) {
+  constructor({ state, canvasSize, tileSize, assets }) {
     this._canvasSize = canvasSize;
-    this._stepSize = stepSize;
+    this._tileSize = tileSize;
     this._state = state;
     this._assets = assets;
 
@@ -77,14 +77,14 @@ class Statistics {
   }
 
   setSize() {
-    this._fontSize = this._stepSize.height * Statistics.FONT_SIZE_SCALE_FACTOR;
-    this._size.width = this._stepSize.width * Statistics.WIDTH_SCALE_FACTOR;
-    this._position.x = (this._canvasSize.width - this._size.width) / 2 - this._stepSize.width * Statistics.POSITION_X_OFFSET_SCALE_FACTOR;
-    this._position.y = this._stepSize.height * Statistics.POSITION_Y_SCALE_FACTOR;
+    this._fontSize = this._tileSize.height * Statistics.FONT_SIZE_SCALE_FACTOR;
+    this._size.width = this._tileSize.width * Statistics.WIDTH_SCALE_FACTOR;
+    this._position.x = (this._canvasSize.width - this._size.width) / 2 - this._tileSize.width * Statistics.POSITION_X_OFFSET_SCALE_FACTOR;
+    this._position.y = this._tileSize.height * Statistics.POSITION_Y_SCALE_FACTOR;
     this._cellSize.width = this._size.width / this._table[0].length;
-    this._cellSize.height = this._stepSize.height * Statistics.CELL_HEIGHT_SCALE_FACTOR;
-    this._spriteSize.width = this._stepSize.width * Statistics.SPRITE_WIDTH_SCALE_FACTOR;
-    this._spriteSize.height = this._stepSize.height * Statistics.SPRITE_HEIGHT_SCALE_FACTOR;
+    this._cellSize.height = this._tileSize.height * Statistics.CELL_HEIGHT_SCALE_FACTOR;
+    this._spriteSize.width = this._tileSize.width * Statistics.SPRITE_WIDTH_SCALE_FACTOR;
+    this._spriteSize.height = this._tileSize.height * Statistics.SPRITE_HEIGHT_SCALE_FACTOR;
   }
 
   render(ctx) {
@@ -101,7 +101,7 @@ class Statistics {
 
         if (sprite) {
           const spritePosition = {
-            x: cellPosition.x + this._cellSize.width - this._spriteSize.width + this._stepSize.width * Statistics.SPRITE_POSITION_X_OFFSET_SCALE_FACTOR,
+            x: cellPosition.x + this._cellSize.width - this._spriteSize.width + this._tileSize.width * Statistics.SPRITE_POSITION_X_OFFSET_SCALE_FACTOR,
             y: cellPosition.y - this._spriteSize.height / 4,
           }
           ctx.drawImage(sprite, spritePosition.x, spritePosition.y, this._spriteSize.width, this._spriteSize.height);

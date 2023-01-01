@@ -1,18 +1,22 @@
 class IntroScene {
-	constructor({ state, canvasSize, stepSize, sceneManager }) {
+	constructor({ state, canvasSize, tileSize, sceneManager }) {
 		this._state = state;
 		this._canvasSize = canvasSize;
-		this._stepSize = stepSize;
+		this._tileSize = tileSize;
 		this._sceneManager = sceneManager;
 
 		this._label = `STAGE ${this._state.getLevelIndex()}`;
 
 		this._fontSize = 0;
-		this.setSize();
+		this._setSize();
 	}
 
-	setSize() {
-		this._fontSize = this._stepSize.height * IntroScene.FONT_SIZE_SCALE_FACTOR;
+	_setSize() {
+		this._fontSize = this._tileSize.height * IntroScene.FONT_SIZE_SCALE_FACTOR;
+	}
+
+	resize() {
+		this._setSize();
 	}
 
 	update(time) {
@@ -20,7 +24,7 @@ class IntroScene {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = '#000000';
+		ctx.fillStyle = '#0C0C0C';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.font = `${this._fontSize}px PressStart2P`;
@@ -35,11 +39,11 @@ class IntroScene {
 		ctx.fillText(this._label, position.x, position.y);
 	}
 
-	handleKeyDown(code) {
+	handleKeyDown({ code }) {
 
 	}
 
-	handleKeyUp(code) {
+	handleKeyUp({ code }) {
 		if (code === 'Enter') this._sceneManager.showCoreScene();
 	}
 }

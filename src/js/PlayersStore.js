@@ -10,7 +10,7 @@ class PlayersStore {
 	}
 
 	clearDestroyedPlayers() {
-		this._players = this._players.filter(player => !player.getDestroyed() || this._tryToRespawnPlayer(player));
+		this._players = this._players.filter(player => !player.isDestroyed() || this._tryToRespawnPlayer(player));
 	}
 
 	_tryToRespawnPlayer(player) {
@@ -18,7 +18,7 @@ class PlayersStore {
 
 		if (this._playersLives[sign] > 0) {
 			player.respawn();
-			this._state.setPlayerLives(sign, this._playersLives[sign] - 1)
+			this._state.setPlayerLives(sign, this._playersLives[sign] - 1);
 			return true;
 		} else {
 			return false;

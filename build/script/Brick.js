@@ -1,7 +1,7 @@
 class Brick {
-	constructor({ coords, stepSize, safeAreaPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer, assets, sprite, spriteOffset, framesCounter }) {
-		this._stepSize = stepSize;
-		this._safeAreaPosition = safeAreaPosition;
+	constructor({ coords, tileSize, gameAreaPosition, collideWithBullet, collideWithTank, breakByBullet, breakBySuperBullet, color, layer, assets, sprite, spriteOffset, framesCounter }) {
+		this._tileSize = tileSize;
+		this._gameAreaPosition = gameAreaPosition;
 		this._coords = {
 			x: coords.x,
 			y: coords.y,
@@ -26,26 +26,26 @@ class Brick {
 	}
 
 	setSize() {
-		this._position.x = this._safeAreaPosition.x + this._coords.x * this._stepSize.width;
-		this._position.y = this._safeAreaPosition.y + this._coords.y * this._stepSize.height;
+		this._position.x = this._gameAreaPosition.x + this._coords.x * this._tileSize.width;
+		this._position.y = this._gameAreaPosition.y + this._coords.y * this._tileSize.height;
 	}
 
 	render(ctx) {
 		const spriteOffset = this._sprite.width * this._spriteOffset;
-		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width / this._framesCounter, this._sprite.height, this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
+		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width / this._framesCounter, this._sprite.height, this._position.x, this._position.y, this._tileSize.width, this._tileSize.height);
 	}
 
 	getRoundedBoundaryBox() {
 		return {
-			x1: this._safeAreaPosition.x + this._coords.x * this._stepSize.width,
-			y1: this._safeAreaPosition.y + this._coords.y * this._stepSize.height,
-			x2: this._safeAreaPosition.x + this._coords.x * this._stepSize.width + this._stepSize.width,
-			y2: this._safeAreaPosition.y + this._coords.y * this._stepSize.height + this._stepSize.height,
+			x1: this._gameAreaPosition.x + this._coords.x * this._tileSize.width,
+			y1: this._gameAreaPosition.y + this._coords.y * this._tileSize.height,
+			x2: this._gameAreaPosition.x + this._coords.x * this._tileSize.width + this._tileSize.width,
+			y2: this._gameAreaPosition.y + this._coords.y * this._tileSize.height + this._tileSize.height,
 		}
 	}
 
 	getSize() {
-		return this._stepSize;
+		return this._tileSize;
 	}
 
 	getPosition() {

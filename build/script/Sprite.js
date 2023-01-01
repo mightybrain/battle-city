@@ -9,11 +9,12 @@ class Sprite {
       width: this._sprite.width / this._animationsNumber,
       height: this._sprite.height / this._framesNumber,
     }
-    this._loop = loop;
 
     this._frameIndex = 0;
-    this._animationIndex = initialAnimationIndex;
+    this._initialAnimationIndex = initialAnimationIndex;
+    this._animationIndex = this._initialAnimationIndex;
     this._playing = playing;
+    this._loop = loop;
 
     this._float = 0;
   }
@@ -41,6 +42,10 @@ class Sprite {
     }
 
     ctx.drawImage(this._sprite, framePosition.x, framePosition.y, this._frameSize.width, this._frameSize.height, position.x, position.y, size.width, size.height);
+  }
+
+  resetAnimation() {
+    this._animationIndex = this._initialAnimationIndex;
   }
 
   setAnimationIndex(index) {

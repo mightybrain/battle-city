@@ -1,7 +1,7 @@
 class EnemiesQueue {
-	constructor ({ stepSize, safeAreaPosition, assets }) {
-		this._safeAreaPosition = safeAreaPosition;
-		this._stepSize = stepSize;
+	constructor ({ tileSize, gameAreaPosition, assets }) {
+		this._gameAreaPosition = gameAreaPosition;
+		this._tileSize = tileSize;
 		this._assets = assets;
 		this._enemiesInQueue = 20;
 
@@ -31,10 +31,10 @@ class EnemiesQueue {
 	}
 
 	setSize() {
-		this._position.x = this._safeAreaPosition.x + this._stepSize.width * EnemiesQueue.POSITION_X_SCALE_FACTOR;
-		this._position.y = this._safeAreaPosition.y + this._stepSize.height * EnemiesQueue.POSITION_Y_SCALE_FACTOR;
-		this._enemySize.width = this._stepSize.width * EnemiesQueue.ENEMY_SIZE_SCALE_FACTOR;
-		this._enemySize.height = this._stepSize.height * EnemiesQueue.ENEMY_SIZE_SCALE_FACTOR;
+		this._position.x = this._gameAreaPosition.x + this._tileSize.width * EnemiesQueue.POSITION_X_SCALE_FACTOR;
+		this._position.y = this._gameAreaPosition.y + this._tileSize.height * EnemiesQueue.POSITION_Y_SCALE_FACTOR;
+		this._enemySize.width = this._tileSize.width * EnemiesQueue.ENEMY_SIZE_SCALE_FACTOR;
+		this._enemySize.height = this._tileSize.height * EnemiesQueue.ENEMY_SIZE_SCALE_FACTOR;
 	}
 
 	getEnemiesInQueue() {

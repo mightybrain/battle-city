@@ -1,15 +1,10 @@
 class MainScene {
-	constructor({ canvasSize, stepSize, sceneManager, assets }) {
+	constructor({ state, canvasSize, tileSize, sceneManager, assets }) {
+		this._state = state;
 		this._canvasSize = canvasSize;
-		this._stepSize = stepSize;
+		this._tileSize = tileSize;
 		this._sceneManager = sceneManager;
 		this._assets = assets;
-
-		this._menu = new Menu({
-			canvasSize: this._canvasSize,
-			stepSize: this._stepSize,
-			assets: this._assets,
-		});
 
 		this._sprite = this._assets.get('images/title.png');
 		this._spriteSize = {
@@ -20,15 +15,24 @@ class MainScene {
 			x: 0,
 			y: 0,
 		}
-		this.setSize();
+		this._setSize();
+
+		this._menu = new Menu({
+			canvasSize: this._canvasSize,
+			tileSize: this._tileSize,
+			assets: this._assets,
+		});
 	}
 
-	setSize() {
-		this._spriteSize.width = this._stepSize.width * MainScene.SPRITE_WIDTH_SCALE_FACTOR;
-		this._spriteSize.height = this._stepSize.height * MainScene.SPRITE_HEIGHT_SCALE_FACTOR;
+	_setSize() {
+		this._spriteSize.width = this._tileSize.width * MainScene.SPRITE_WIDTH_SCALE_FACTOR;
+		this._spriteSize.height = this._tileSize.height * MainScene.SPRITE_HEIGHT_SCALE_FACTOR;
 		this._spritePosition.x = (this._canvasSize.width - this._spriteSize.width) / 2;
-		this._spritePosition.y = this._stepSize.height * MainScene.SPRITE_POSITION_Y_SCALE_FACTOR;
-		
+		this._spritePosition.y = this._tileSize.height * MainScene.SPRITE_POSITION_Y_SCALE_FACTOR;
+	}
+
+	resize() {
+		this._setSize();
 		this._menu.setSize();
 	}
 
@@ -37,7 +41,7 @@ class MainScene {
 	}
 
 	render(ctx) {
-		ctx.fillStyle = '#000000';
+		ctx.fillStyle = '#0C0C0C';
 		ctx.fillRect(0, 0, this._canvasSize.width, this._canvasSize.height);
 
 		ctx.drawImage(this._sprite, this._spritePosition.x, this._spritePosition.y, this._spriteSize.width, this._spriteSize.height);
@@ -45,12 +49,19 @@ class MainScene {
 		this._menu.render(ctx);
 	}
 
-	handleKeyDown(code) {
+	_start() {
+		if (this._menu.isSinglePlayerGame()) {
+			this._state.setPlayerLives(1, 2);
+			this._sceneManager.showIntroScene();
+		}	
+	}
+
+	handleKeyDown({ code }) {
 		if (code === 'ArrowDown' || code === 'ArrowUp') this._menu.changeActiveMenuItem(code);
 	}
 
-	handleKeyUp(code) {
-		if (code === 'Enter') this._sceneManager.showIntroScene();
+	handleKeyUp({ code }) {
+		if (code === 'Enter') this._start();
 	}
 }
 

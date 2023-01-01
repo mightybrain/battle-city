@@ -1,7 +1,7 @@
 class Eagle {
-	constructor({ stepSize, safeAreaPosition, assets, explosionsStore }) {
-		this._stepSize = stepSize;
-		this._safeAreaPosition = safeAreaPosition;
+	constructor({ tileSize, gameAreaPosition, assets, explosionsStore }) {
+		this._tileSize = tileSize;
+		this._gameAreaPosition = gameAreaPosition;
 		this._assets = assets;
 		this._explosionsStore = explosionsStore;
 
@@ -17,28 +17,30 @@ class Eagle {
 
 		this._sprite = this._assets.get('images/eagle.png');
 
-		this._destroyed = false;
+		this._status = Eagle.STATUSES[1];
 	}
 
 	render(ctx) {
-		const offsetX = this._destroyed ? this._sprite.width / 2 : 0; 
+		const offsetX = this.isDestroyed() ? this._sprite.width / 2 : 0; 
 		
 		ctx.drawImage(this._sprite, offsetX, 0, this._sprite.width / 2, this._sprite.height, this._position.x, this._position.y, this._size.width, this._size.height);
 	}
 
 	setSize() {
-		this._size.width = this._stepSize.width * Eagle.SIZE_SCALE_FACTOR;
-		this._size.height = this._stepSize.height * Eagle.SIZE_SCALE_FACTOR;
-		this._position.x = this._safeAreaPosition.x + this._stepSize.width * Eagle.INITIAL_COORDS.x;
-		this._position.y = this._safeAreaPosition.y + this._stepSize.height * Eagle.INITIAL_COORDS.y;
+		this._size.width = this._tileSize.width * Eagle.SIZE_SCALE_FACTOR;
+		this._size.height = this._tileSize.height * Eagle.SIZE_SCALE_FACTOR;
+		this._position.x = this._gameAreaPosition.x + this._tileSize.width * Eagle.INITIAL_COORDS.x;
+		this._position.y = this._gameAreaPosition.y + this._tileSize.height * Eagle.INITIAL_COORDS.y;
 	}
 
-	getDestroyed() {
-		return this._destroyed;
+	isDestroyed() {
+		return this._status === Eagle.STATUSES[2];
 	}
 
 	destroy() {
-		this._destroyed = true;
+		if (this.isDestroyed()) return;
+		
+		this._status = Eagle.STATUSES[2];
 		this._addExplosion();
 	}
 
@@ -51,8 +53,8 @@ class Eagle {
 		
 		const explosion = new Explosion({
 			...type,
-			stepSize: this._stepSize,
-			safeAreaPosition: this._safeAreaPosition,
+			tileSize: this._tileSize,
+			gameAreaPosition: this._gameAreaPosition,
 			assets: this._assets,
 			centerPoint: centerPoint,
 		});
@@ -62,14 +64,18 @@ class Eagle {
 
 	getRoundedBoundaryBox() {
 		return {
-			x1: this._safeAreaPosition.x + Eagle.INITIAL_COORDS.x * this._stepSize.width,
-			y1: this._safeAreaPosition.y + Eagle.INITIAL_COORDS.y * this._stepSize.height,
-			x2: this._safeAreaPosition.x + Eagle.INITIAL_COORDS.x * this._stepSize.width + this._size.width,
-			y2: this._safeAreaPosition.y + Eagle.INITIAL_COORDS.y * this._stepSize.height + this._size.height,
+			x1: this._gameAreaPosition.x + Eagle.INITIAL_COORDS.x * this._tileSize.width,
+			y1: this._gameAreaPosition.y + Eagle.INITIAL_COORDS.y * this._tileSize.height,
+			x2: this._gameAreaPosition.x + Eagle.INITIAL_COORDS.x * this._tileSize.width + this._size.width,
+			y2: this._gameAreaPosition.y + Eagle.INITIAL_COORDS.y * this._tileSize.height + this._size.height,
 		}
 	}
 }
 
+Eagle.STATUSES = {
+	1: 'active',
+	2: 'destroyed',
+}
 Eagle.SIZE_SCALE_FACTOR = 4;
 Eagle.INITIAL_COORDS = {
 	x: 24,

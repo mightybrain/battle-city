@@ -1,19 +1,19 @@
 class Bullet {
-	constructor({ stepSize, safeAreaPosition, level, position, direction, bulletsStore, enemiesStore, explosionsStore, assets, owner, eagle, playersStore, state }) {
-		this._stepSize = stepSize;
-		this._prevStepSizeWidth = this._stepSize.width;
-		this._prevStepSizeHeight = this._stepSize.height;
-		this._safeAreaPosition = safeAreaPosition;
-		this._prevSafeAreaPositionX = this._safeAreaPosition.x;
-		this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+	constructor({ tileSize, gameAreaPosition, level, position, direction, bulletsStore, enemiesStore, explosionsStore, assets, owner, eagle, playersStore, state }) {
+		this._tileSize = tileSize;
+		this._prevTileSizeWidth = this._tileSize.width;
+		this._prevTileSizeHeight = this._tileSize.height;
+		this._gameAreaPosition = gameAreaPosition;
+		this._prevGameAreaPositionX = this._gameAreaPosition.x;
+		this._prevGameAreaPositionY = this._gameAreaPosition.y;
 
 		this._playersStore = playersStore;
 		this._bulletsStore = bulletsStore;
 		this._enemiesStore = enemiesStore;
 		this._explosionsStore = explosionsStore;
 		this._assets = assets;
-		this._owner = owner;
 		this._state = state;
+		this._owner = owner;
 		this._sprite = this._assets.get('images/bullet.png')
 
 		this._level = level;
@@ -33,25 +33,25 @@ class Bullet {
 		};
 		this.setSize({ initial: true });
 
-		this._destroyed = false;
+		this._status = Bullet.STATUSES[1];
 	}
 
 	setSize({ initial = false } = {}) {
-		this._velocity.x = this._direction.x * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.width;
-		this._velocity.y = this._direction.y * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._stepSize.height;
+		this._velocity.x = this._direction.x * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._tileSize.width;
+		this._velocity.y = this._direction.y * Bullet.SPEED_PER_SECOND_SCALE_FACTOR * this._tileSize.height;
 
 		if (!initial) {
 			const coords = {
-				x: (this._position.x - this._prevSafeAreaPositionX) / this._prevStepSizeWidth,
-				y: (this._position.y - this._prevSafeAreaPositionY) / this._prevStepSizeHeight,
+				x: (this._position.x - this._prevGameAreaPositionX) / this._prevTileSizeWidth,
+				y: (this._position.y - this._prevGameAreaPositionY) / this._prevTileSizeHeight,
 			}
-			this._position.x = this._safeAreaPosition.x + this._stepSize.width * coords.x;
-			this._position.y = this._safeAreaPosition.y + this._stepSize.height * coords.y;
+			this._position.x = this._gameAreaPosition.x + this._tileSize.width * coords.x;
+			this._position.y = this._gameAreaPosition.y + this._tileSize.height * coords.y;
 
-			this._prevStepSizeWidth = this._stepSize.width;
-			this._prevStepSizeHeight = this._stepSize.height;
-			this._prevSafeAreaPositionX = this._safeAreaPosition.x;
-			this._prevSafeAreaPositionY = this._safeAreaPosition.y;
+			this._prevTileSizeWidth = this._tileSize.width;
+			this._prevTileSizeHeight = this._tileSize.height;
+			this._prevGameAreaPositionX = this._gameAreaPosition.x;
+			this._prevGameAreaPositionY = this._gameAreaPosition.y;
 		}
 	}
 
@@ -61,7 +61,7 @@ class Bullet {
 		else if (this._direction.x < 0) spriteOffset = this._sprite.width * .5;
 		else if (this._direction.y > 0) spriteOffset = this._sprite.width * .25;
 
-		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._stepSize.width, this._stepSize.height);
+		ctx.drawImage(this._sprite, spriteOffset, 0, this._sprite.width * .25, this._sprite.height, this._position.x, this._position.y, this._tileSize.width, this._tileSize.height);
 	}
 
 	update({ delta }) {
@@ -100,7 +100,7 @@ class Bullet {
 			position = positionWithTanksCollision;
 			const destroyed = tankForDestroy.destroy();
 			if (!destroyed) this._addExplosion(position);
-			if (this._owner instanceof Player && tankForDestroy instanceof Enemy && tankForDestroy.getDestroyed()) this._updatePlayerStatistics(tankForDestroy);
+			if (this._owner instanceof Player && tankForDestroy instanceof Enemy && tankForDestroy.isDestroyed()) this._updatePlayerStatistics(tankForDestroy);
 			this.destroy();
 			return;
 		}
@@ -117,10 +117,10 @@ class Bullet {
 	}
 
 	_getTouchPoint(position) {
-		if (this._velocity.x > 0) return { x: position.x + this._stepSize.width, y: position.y + this._stepSize.height / 2 };
-		else if (this._velocity.x < 0) return { x: position.x, y: position.y + this._stepSize.height / 2 };
-		else if (this._velocity.y > 0) return { x: position.x + this._stepSize.width / 2, y: position.y + this._stepSize.height };
-		else if (this._velocity.y < 0) return { x: position.x + this._stepSize.width / 2, y: position.y }
+		if (this._velocity.x > 0) return { x: position.x + this._tileSize.width, y: position.y + this._tileSize.height / 2 };
+		else if (this._velocity.x < 0) return { x: position.x, y: position.y + this._tileSize.height / 2 };
+		else if (this._velocity.y > 0) return { x: position.x + this._tileSize.width / 2, y: position.y + this._tileSize.height };
+		else if (this._velocity.y < 0) return { x: position.x + this._tileSize.width / 2, y: position.y }
 	}
 
 	_addExplosion(position) {
@@ -128,11 +128,11 @@ class Bullet {
 		const touchPoint = this._getTouchPoint(position);
 		
 		const explosion = new Explosion({
-			...type,
-			stepSize: this._stepSize,
-			safeAreaPosition: this._safeAreaPosition,
+			tileSize: this._tileSize,
+			gameAreaPosition: this._gameAreaPosition,
 			assets: this._assets,
 			centerPoint: touchPoint,
+			...type,
 		});
 
 		this._explosionsStore.addExplosion(explosion);
@@ -146,15 +146,15 @@ class Bullet {
 	}
 
 	_updatePositionWithEagleCollision(position) {		
-		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
+		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._tileSize);
 		const eagleBoundaryBox = this._eagle.getRoundedBoundaryBox();
 		const collision = twoAreasCollisioned(bulletBoundaryBox, eagleBoundaryBox);
 
-		return collision ? roundPositionByObject(position, this._stepSize, this._velocity, eagleBoundaryBox) : position;
+		return collision ? roundPositionByObject(position, this._tileSize, this._velocity, eagleBoundaryBox) : position;
 	}
 
 	_updatePositionWithBulletsCollision(position) {
-		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
+		const elemBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._tileSize);
 
 		const bulletsWithCollision = this._bulletsStore
 			.getBullets()
@@ -173,20 +173,20 @@ class Bullet {
 		const closestBulletBoundaryBox = closestBullet.getBoundaryBox();
 
 		return {
-			position: roundPositionByObject(position, this._stepSize, this._velocity, closestBulletBoundaryBox),
+			position: roundPositionByObject(position, this._tileSize, this._velocity, closestBulletBoundaryBox),
 			bulletForDestroy: closestBullet,
 		}
 	}
 
 	_updatePositionWithTanksCollision(position) {
-		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
+		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._tileSize);
 
 		const players = this._playersStore.getPlayers();
 		const enemies = this._enemiesStore.getEnemies()
 
 		const tanksWithCollision = [ ...players, ...enemies ].filter(tank => {
 			if (this._owner === tank) return false;
-			if (tank.getBirth()) return false;
+			if (tank.isBirthing()) return false;
 			if (this._owner instanceof Enemy && tank instanceof Enemy) return false;
 
 			const tankBoundaryBox = tank.getBoundaryBox();
@@ -200,30 +200,30 @@ class Bullet {
 		const closestTankBoundaryBox = closestTank.getBoundaryBox();
 
 		return {
-			position: roundPositionByObject(position, this._stepSize, this._velocity, closestTankBoundaryBox),
+			position: roundPositionByObject(position, this._tileSize, this._velocity, closestTankBoundaryBox),
 			tankForDestroy: closestTank,
 		}
 	}
 
 	_updatePositionWithLevelEdgesCollision(position) {
 		const levelBoundaryBox = this._level.getBoundaryBox();
-		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
+		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._tileSize);
 
-		if (bulletBoundaryBox.x2 > levelBoundaryBox.x2) return { ...position, x: levelBoundaryBox.x2 - this._stepSize.width };
+		if (bulletBoundaryBox.x2 > levelBoundaryBox.x2) return { ...position, x: levelBoundaryBox.x2 - this._tileSize.width };
 		else if (bulletBoundaryBox.x1 < levelBoundaryBox.x1) return { ...position, x: levelBoundaryBox.x1 };
-		else if (bulletBoundaryBox.y2 > levelBoundaryBox.y2) return { ...position, y: levelBoundaryBox.y2 - this._stepSize.height };
+		else if (bulletBoundaryBox.y2 > levelBoundaryBox.y2) return { ...position, y: levelBoundaryBox.y2 - this._tileSize.height };
 		else if (bulletBoundaryBox.y1 < levelBoundaryBox.y1) return { ...position, y: levelBoundaryBox.y1 };
 		else return position;
 	}
 
 	_updatePositionWithLevelBricksCollision(position) {
-		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._stepSize);
+		const bulletBoundaryBox = getBoundaryBoxOfMovingElem(this._velocity, this._position, position, this._tileSize);
 
 		const coords = {
-			x1: Math.floor((bulletBoundaryBox.x1 - this._safeAreaPosition.x) / this._stepSize.width),
-			y1: Math.floor((bulletBoundaryBox.y1 - this._safeAreaPosition.y) / this._stepSize.height),
-			x2: Math.ceil((bulletBoundaryBox.x2 - this._safeAreaPosition.x) / this._stepSize.width),
-			y2: Math.ceil((bulletBoundaryBox.y2 - this._safeAreaPosition.y) / this._stepSize.height),
+			x1: Math.floor((bulletBoundaryBox.x1 - this._gameAreaPosition.x) / this._tileSize.width),
+			y1: Math.floor((bulletBoundaryBox.y1 - this._gameAreaPosition.y) / this._tileSize.height),
+			x2: Math.ceil((bulletBoundaryBox.x2 - this._gameAreaPosition.x) / this._tileSize.width),
+			y2: Math.ceil((bulletBoundaryBox.y2 - this._gameAreaPosition.y) / this._tileSize.height),
 		}
 
 		const bricksWithCollision = this._level
@@ -244,7 +244,7 @@ class Bullet {
 		const brickBoundaryBox = bricksForDestroy[0].getRoundedBoundaryBox();
 
 		return {
-			position: roundPositionByObject(position, this._stepSize, this._velocity, brickBoundaryBox),
+			position: roundPositionByObject(position, this._tileSize, this._velocity, brickBoundaryBox),
 			bricksForDestroy,
 		}
 	}
@@ -284,18 +284,22 @@ class Bullet {
 		}, [])
 	}
 
+	isActive() {
+		return this._status === Bullet.STATUSES[1];
+	}
+
+	isDestroyed() {
+		return this._status === Bullet.STATUSES[2];
+	}
+
 	destroy() {
-		this._destroyed = true;
+		this._status = Bullet.STATUSES[2];
 		this._owner.clearDestroyedBullets();
 		this._bulletsStore.clearDestroyedBullets();
 	}
 
-	getDestroyed() {
-		return this._destroyed;
-	}
-
 	getSize() {
-		return this._stepSize;
+		return this._tileSize;
 	}
 
 	getPosition() {
@@ -310,10 +314,14 @@ class Bullet {
 		return {
 			x1: this._position.x,
 			y1: this._position.y,
-			x2: this._position.x + this._stepSize.width,
-			y2: this._position.y + this._stepSize.height,
+			x2: this._position.x + this._tileSize.width,
+			y2: this._position.y + this._tileSize.height,
 		}
 	}
 }
 
 Bullet.SPEED_PER_SECOND_SCALE_FACTOR = 18;
+Bullet.STATUSES = {
+	1: 'active',
+	2: 'destroyed',
+}

@@ -1,8 +1,8 @@
 class Level {
-	constructor({ canvasSize, stepSize, safeAreaPosition, state, assets }) {
+	constructor({ canvasSize, tileSize, gameAreaPosition, state, assets }) {
 		this._canvasSize = canvasSize;
-		this._stepSize = stepSize;
-		this._safeAreaPosition = safeAreaPosition;
+		this._tileSize = tileSize;
+		this._gameAreaPosition = gameAreaPosition;
 		this._state = state;
 		this._assets = assets;
 		this._levels = this._assets.get('json/levels.json');
@@ -12,8 +12,9 @@ class Level {
 			width: 0,
 			height: 0,
 		}
+		this._setSize();
+
 		this._map = this._setMap(this._levels[this._levelIndex]);
-		this.setSize();
 	}
 
 	_setMap(map) {
@@ -25,8 +26,8 @@ class Level {
 				return new Brick({
 					...Brick.TYPES[key],
 					coords: { x, y },
-					stepSize: this._stepSize,
-					safeAreaPosition: this._safeAreaPosition,
+					tileSize: this._tileSize,
+					gameAreaPosition: this._gameAreaPosition,
 					assets: this._assets,
 				})
 			})
@@ -36,7 +37,7 @@ class Level {
 	render(ctx, layer) {
 		if (layer === 'bottom') {
 			ctx.fillStyle = '#121212';
-			ctx.fillRect(this._safeAreaPosition.x, this._safeAreaPosition.y, this._mapSize.width, this._mapSize.height);
+			ctx.fillRect(this._gameAreaPosition.x, this._gameAreaPosition.y, this._mapSize.width, this._mapSize.height);
 		}
 
 		this._map.forEach(row => {
@@ -46,10 +47,13 @@ class Level {
 		})
 	}
 
-	setSize() {
-		this._mapSize.width = this._stepSize.width * Level.MAP_WIDTH_SCALE_FACTOR;
-		this._mapSize.height = this._stepSize.height * Level.MAP_HEIGHT_SCALE_FACTOR;
+	_setSize() {
+		this._mapSize.width = this._tileSize.width * Level.MAP_WIDTH_SCALE_FACTOR;
+		this._mapSize.height = this._tileSize.height * Level.MAP_HEIGHT_SCALE_FACTOR;
+	}
 
+	resize() {
+		this._setSize();
 		this._map.forEach(row => {
 			row.forEach(brick => {
 				if (brick) brick.setSize();
@@ -68,10 +72,10 @@ class Level {
 
 	getBoundaryBox() {
 		return {
-			x1: this._safeAreaPosition.x,
-			y1: this._safeAreaPosition.y,
-			x2: this._safeAreaPosition.x + this._mapSize.width,
-			y2: this._safeAreaPosition.y + this._mapSize.height,
+			x1: this._gameAreaPosition.x,
+			y1: this._gameAreaPosition.y,
+			x2: this._gameAreaPosition.x + this._mapSize.width,
+			y2: this._gameAreaPosition.y + this._mapSize.height,
 		}
 	}
 

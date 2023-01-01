@@ -4,8 +4,8 @@ class State {
 		this._levelIndex = 1;
 
 		this._playersLives = {
-			1: 2,
-			2: 2,
+			1: 0,
+			2: 0,
 		}
 
 		this._playersPoints = {
@@ -91,27 +91,14 @@ class State {
 		this._gameOver = false;
 		this._levelIndex = 1;
 		this._playersLives = {
-			1: 2,
-			2: 2,
+			1: 0,
+			2: 0,
 		}
 		this._playersPoints = {
 			1: 0,
 			2: 0,
 		}
-		this._playersStatisticsByEnemiesTypes = {
-			1: {
-				1: { counter: 0, points: 0 },
-				2: { counter: 0, points: 0 },
-				3: { counter: 0, points: 0 },
-				4: { counter: 0, points: 0 },
-			},
-			2: {
-				1: { counter: 0, points: 0 },
-				2: { counter: 0, points: 0 },
-				3: { counter: 0, points: 0 },
-				4: { counter: 0, points: 0 },
-			}
-		}
+		this.resetPlayersStatisticsByEnemiesTypes();
 	}
 
 	setPlayerLives(sign, lives) {

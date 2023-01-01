@@ -8,7 +8,7 @@ class EnemiesStore {
 	}
 
 	clearDestroyedEnemies() {
-		this._enemies = this._enemies.filter(enemy => !enemy.getDestroyed());
+		this._enemies = this._enemies.filter(enemy => !enemy.isDestroyed());
 	}
 
 	render(ctx) {
