@@ -18,6 +18,7 @@ gulp.task('webserver', function(){
   gulp.watch('src/style/**/*.{styl,css}', gulp.series('style:build'));
   gulp.watch('src/**/*.pug', gulp.series('html:build'));
   gulp.watch('src/js/**/*.js', gulp.series('js:build'));
+  gulp.watch('src/images/**/*.{jpeg,jpg,png,svg,gif}', gulp.series('image:build'));
 });
 
 gulp.task('html:build', function(){
@@ -29,7 +30,7 @@ gulp.task('html:build', function(){
 });
 
 gulp.task('js:build', function(){
-  return gulp.src('src/js/**/*.js')
+  return gulp.src('src/js/*.js')
     .pipe(rigger())
     .pipe(gulp.dest('build/script'))
     .pipe(server.stream());
@@ -75,6 +76,6 @@ gulp.task('video:build', function(){
     .pipe(gulp.dest('build/video'));
 });
 
-let build = gulp.series('fonts:build', 'image:build', 'json:build', 'svg:build', 'video:build', 'html:build', 'style:build', 'js:build', 'webserver');
+const build = gulp.series('fonts:build', 'image:build', 'json:build', 'svg:build', 'video:build', 'html:build', 'style:build', 'js:build', 'webserver');
 
 gulp.task('build', build);
