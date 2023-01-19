@@ -128,7 +128,7 @@ class Tank {
 
 		if (this._shieldStartTime === null) {
 			this._shieldStartTime = timestamp;
-		} else if (this._shieldStartTime + this._shieldDuration < timestamp) {
+		} else if (this._shieldStartTime + this._shieldDuration > timestamp) {
 			this._shieldSprite.update(time);
 		} else {
 			this._shield = false;
