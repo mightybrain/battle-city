@@ -2001,23 +2001,32 @@ class Enemy extends Tank {
 		super.update(time);
 	}
 
-	_updateDirectionAndStartOrContinueMoving(time) {
-		const { timestamp } = time;
-
+	_updateDirectionAndStartOrContinueMoving({ timestamp, delta }) {
 		if (this._prevChangeDirectionTime === null || timestamp > this._nextChangeDirectionTime) {
 			this._prevChangeDirectionTime = timestamp;
 			this._nextChangeDirectionTime = this._prevChangeDirectionTime + getRandomFromRange(500, 4000);
-			this._moveSmartDirection(time);
+			const direction = this._getDirection(delta);
+			this._move(direction);
 		}
 	}
 
-	_moveSmartDirection({ delta }) {
-		if (this._directionIsFree(this._direction, delta)) {
-			this._move(this._direction);
-		} else {
-			const direction = this._getDirectionFromAllDirection(delta);
-			this._move(direction);
-		}
+	_getDirection(delta) {
+		const ignoreSmartDirectionsKeys = Math.random() > 0.75;
+		const smartDirectionsKeys = ignoreSmartDirectionsKeys ? [] : this._getSmartDirectionsKeys().filter(key => this._directionIsFree(Tank.DIRECTIONS[key], delta));
+		const directionsToMoveKeys = smartDirectionsKeys.length ? smartDirectionsKeys : Object.keys(Tank.DIRECTIONS);
+
+		const index = getRandomFromRange(0, directionsToMoveKeys.length - 1);
+		const key = directionsToMoveKeys[index];
+
+		return Tank.DIRECTIONS[key];
+	}
+
+	_getSmartDirectionsKeys() {
+		const eaglePosition = this._eagle.getPosition();
+
+		if (eaglePosition.x < this._position.x) return ['down', 'left'];
+		else if (eaglePosition.x > this._position.x) return ['down', 'right'];
+		else return ['down'];
 	}
 
 	_directionIsFree(direction, delta) {
@@ -2037,26 +2046,6 @@ class Enemy extends Tank {
 		actualPosition = this._updatePositionWithLevelBricksCollision(actualPosition, velocity);
 
 		return supposedPosition === actualPosition;
-	}
-
-	_getPriorityDirectionsKeys() {
-		const priorityDirectionsKeys = ['down'];
-		const eaglePosition = this._eagle.getPosition();
-
-		if (eaglePosition.x < this._position.x) priorityDirectionsKeys.push('left');
-		else if (eaglePosition.x > this._position.x) priorityDirectionsKeys.push('right');
-
-		return priorityDirectionsKeys;
-	}
-
-	_getDirectionFromAllDirection(delta) {
-		const priorityAndFreeDirectionsKeys = this._getPriorityDirectionsKeys().filter(key => this._directionIsFree(Tank.DIRECTIONS[key], delta));
-		const directionsToMoveKeys = priorityAndFreeDirectionsKeys.length ? priorityAndFreeDirectionsKeys : Object.keys(Tank.DIRECTIONS);
-
-		const index = getRandomFromRange(0, directionsToMoveKeys.length - 1);
-		const key = directionsToMoveKeys[index];
-
-		return Tank.DIRECTIONS[key];
 	}
 
 	_updateShooting({ timestamp }) {
